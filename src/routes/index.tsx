@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
       { title: "Glow-Up Rendszer — Szintlépős életmód tracker" },
       { name: "description", content: "Edzés, bőrápolás, tanulás és alvás RPG-stílusban: lépj szintet, fejleszd anime avatárod." },
       { property: "og:title", content: "Glow-Up Rendszer" },
-      { property: "og:description", content: "Napi küldetések, XP, szarkasztikus Sensei. Lépj szintet a valóságban." },
+      { property: "og:description", content: "Napi küldetések, XP, és válassz mentort: Jinwoo, Cha Hae-In, Yoo Jin-Ho és többek. Lépj szintet a valóságban." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
