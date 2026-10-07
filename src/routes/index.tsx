@@ -45,16 +45,57 @@ const DARES = [
   "Mondd el drámai anime-monológban, miért hagytad ki a küldetést.",
   "Csinálj 'reggeli rutin' videót mint egy túlbuzgó influenszer.",
 ];
-const SENSEI = {
-  done: ["Hm. Nem vagy teljesen reménytelen.", "Egy pipa. Ne kérj tapsot.", "Lassan, de még ez is haladás."],
-  idle: ["Még mindig a kanapén? A dokkolt avatárod sír.", "A tegnapi éned is ennyit mondott.", "Edzés vagy kifogás. Választhatsz."],
-  levelup: ["SZINTLÉPÉS. Na ne bízd el magad.", "Új szint. A hétköznapi emberek most kezdenek irigyelni."],
+type MentorId = "jinwoo" | "chahaein" | "jinho" | "gunhee" | "yoonho" | "jinchul";
+const MENTORS: Record<MentorId, { name: string; title: string; done: string[]; idle: string[]; levelup: string[] }> = {
+  jinwoo: {
+    name: "Sung Jin-Woo",
+    title: "A Rendszer hangja",
+    done: ["Kelj fel. A munkád még nem vége.", "Elfogadva. Folytasd.", "Ez még nem monarchia-szintű teljesítmény. De közel."],
+    idle: ["Arise... az ágyadból.", "Az árnyékaid is türelmesebbek nálad.", "A kapuk nem várnak. Te meg vártatsz."],
+    levelup: ["SZINTLÉPÉS. A Rendszer elismeri. Ne bízd el magad.", "Erősödsz. Jó. Lesz még mit oltalmaznod."],
+  },
+  chahaein: {
+    name: "Cha Hae-In",
+    title: "S-rangú kardtáncos",
+    done: ["Megéreztem: ma is gyűjtöd az erőt.", "Szép munka. Több dícséretet majd a következő szintnél.", "Látom a szorgalmat. Tartsd meg."],
+    idle: ["A kardom azt súgja: mozdulj.", "Illat alapján is kiderül, hogy ma nem edzettél.", "Egy S-rangú vadász is naponta edz. És te?"],
+    levelup: ["Erősebb lettél. Ezt a levegőben is érzem.", "Új szint. Megérdemelted – ne duzzadj azonnal."],
+  },
+  jinho: {
+    name: "Yoo Jin-Ho",
+    title: "A leghűségesebb haver",
+    done: ["Nagykönyv, főnök! Ezt kinyomtatjuk!", "Látod? Ez már szinte S-rangú mozdulat!", "Haver leszel belőlem, főnök, emlékezz a szavamra!"],
+    idle: ["Főnök, ha mozdulnánk is egy kicsit?", "Ha a guildem büntetné a kifogásokat, most a sarokban ülnél.", "Ne szomorkodj, főnök. Együtt gyengék, együtt erősek!"],
+    levelup: ["SZINTLÉPÉS!! Főnök, ki vagy te, egy másik személy vagy már?!", "Rangemelés! Majd szobrot állítok, szinte kész is!"],
+  },
+  gunhee: {
+    name: "Go Gun-Hee",
+    title: "A Szövetség elnöke",
+    done: ["Fegyelmezett. Ez a legnagyobb erény.", "Lassú léptekkel is fel lehet érni, ha naponta léptek.", "Jó. Az ilyen apróságokból lesz a rang."],
+    idle: ["Ifjú, a szorgalom sokszor felülmúlja a tehetséget.", "Ülj le magaddal: kifogás vagy fejlődés?", "A korom nem engedi, különben helyetted edzenék."],
+    levelup: ["Fejlődsz. Elnöki elismerésben részesültél.", "Szintet léptél. Emlékezz: az erő akkor ér valamit, ha oltalmaz."],
+  },
+  yoonho: {
+    name: "Baek Yoon-Ho",
+    title: "A Vörös Sarkány vezetője",
+    done: ["Hah! Csak így! Még százat!", "Nem rossz. De lehetne vadabb is!", "Ilyen tempóban tényleg lesz belőled vadász."],
+    idle: ["Szunnyadsz? A mancsaid nem díszek!", "Szedd össze magad! A vadászok nem a kanapén születnek!", "Ha így folytatod, majd beszipáblázlak magadnak az edzőterembe!"],
+    levelup: ["GYAKORLOD! Ezt kellett! Még erősebben!", "Új szint! Mostantól még keményebben edzek veled!"],
+  },
+  jinchul: {
+    name: "Woo Jin-Chul",
+    title: "Felügyelő, Szövetség",
+    done: ["Rögzítve. Megfelelő teljesítmény.", "Jelentés elfogadva. Folytassa.", "Az adatok szerint fejleszted magad. Jó jel."],
+    idle: ["Emlékeztető: a napi küldetések határideje közeleg.", "Az Ön jelentkezése eddig elmaradt. Javítsa.", "A Szövetség figyeli a fejlődését. Vagy színlel. Nem mindegy."],
+    levelup: ["Szintlépés visszaigazolva. Hivatalból is gratulálok.", "Rangemelés rögzítve. Tartsa a színvonalat."],
+  },
 };
 const pick = (a: string[]): string => a[Math.floor(Math.random() * a.length)] ?? "";
 const today = () => new Date().toISOString().slice(0, 10);
 
 type State = {
   cls: ClassId | null;
+  mentor: MentorId | null;
   name: string;
   xp: number;
   stats: Record<Stat, number>;
