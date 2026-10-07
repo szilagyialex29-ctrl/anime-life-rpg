@@ -105,7 +105,7 @@ type State = {
   dare: string | null;
 };
 const initial: State = {
-  cls: null, name: "", xp: 0, day: today(), done: [], penaltyUntil: null, dare: null,
+  cls: null, mentor: null, name: "", xp: 0, day: today(), done: [], penaltyUntil: null, dare: null,
   stats: { STR: 1, CHA: 1, INT: 1, HP: 1, MANA: 1 },
 };
 const xpFor = (lvl: number) => 100 + lvl * 50;
@@ -121,11 +121,14 @@ function Index() {
   const [loaded, setLoaded] = useState(false);
   const [msg, setMsg] = useState<string>("");
   const [pick1, setPick1] = useState<ClassId>("warrior");
+  const [pickM, setPickM] = useState<MentorId>("jinwoo");
+  const [showM, setShowM] = useState(false);
   const [nm, setNm] = useState("");
 
   useEffect(() => {
     const raw = localStorage.getItem("glowup");
     let st: State = raw ? { ...initial, ...JSON.parse(raw) } : initial;
+    if (st.cls && !st.mentor) st = { ...st, mentor: "jinwoo" as MentorId };
     if (st.cls && st.day !== today()) {
       const failed = st.done.filter((d) => QUESTS.some((q) => q.id === d)).length < QUESTS.length;
       st = { ...st, day: today(), done: [] };
@@ -133,7 +136,7 @@ function Index() {
     }
     if (st.penaltyUntil && Date.now() > st.penaltyUntil) st = { ...st, penaltyUntil: null, dare: null };
     setS(st); setLoaded(true);
-    setMsg(st.penaltyUntil ? "[FIGYELMEZTETÉS] Büntetési zóna aktív." : pick(SENSEI.idle));
+    setMsg(st.penaltyUntil ? "[FIGYELMEZTETÉS] Büntetési zóna aktív." : pick(MENTORS[st.mentor ?? "jinwoo"].idle));
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem("glowup", JSON.stringify(s)); }, [s, loaded]);
 
@@ -159,10 +162,23 @@ function Index() {
             </button>
           ))}
         </div>
+        <div className="system-window p-4 mt-6">
+          <p className="font-display text-xs text-primary mb-1">[ MENTOR ]</p>
+          <p className="text-sm text-muted-foreground mb-3">Nem mindenki lehet Jinwoo. Válassz, ki szóljon rád.</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {(Object.keys(MENTORS) as MentorId[]).map((id) => (
+              <button key={id} onClick={() => setPickM(id)}
+                className={`p-3 border text-left ${pickM === id ? "border-primary bg-primary/10" : "border-border hover:border-primary opacity-80 hover:opacity-100"}`}>
+                <span className="font-display">{MENTORS[id].name}</span>
+                <span className="block text-xs text-muted-foreground">{MENTORS[id].title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="system-window p-4 mt-6 flex flex-col md:flex-row gap-3">
           <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder="Játékosnév"
             className="flex-1 bg-input/20 border border-input px-3 py-2 outline-none focus:border-primary" />
-          <button disabled={!nm.trim()} onClick={() => setS({ ...initial, cls: pick1, name: nm.trim() })}
+          <button disabled={!nm.trim()} onClick={() => setS({ ...initial, cls: pick1, mentor: pickM, name: nm.trim() })}
             className="font-display bg-primary text-primary-foreground px-6 py-2 disabled:opacity-40">ÉBREDÉS</button>
         </div>
       </main>
@@ -170,6 +186,7 @@ function Index() {
   }
 
   const c = CLASSES[s.cls];
+  const m = MENTORS[s.mentor ?? "jinwoo"];
   const lv = levelOf(s.xp);
   const inPenalty = !!s.penaltyUntil;
   const list = inPenalty ? PENALTY : QUESTS;
