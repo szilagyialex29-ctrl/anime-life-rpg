@@ -178,7 +178,7 @@ function Index() {
         <div className="system-window p-4 mt-6 flex flex-col md:flex-row gap-3">
           <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder="Játékosnév"
             className="flex-1 bg-input/20 border border-input px-3 py-2 outline-none focus:border-primary" />
-          <button disabled={!nm.trim()} onClick={() => setS({ ...initial, cls: pick1, mentor: pickM, name: nm.trim() })}
+          <button disabled={!nm.trim()} onClick={() => { setS({ ...initial, cls: pick1, mentor: pickM, name: nm.trim() }); setMsg(pick(MENTORS[pickM].idle)); }}
             className="font-display bg-primary text-primary-foreground px-6 py-2 disabled:opacity-40">ÉBREDÉS</button>
         </div>
       </main>
