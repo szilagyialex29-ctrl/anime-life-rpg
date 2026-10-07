@@ -202,7 +202,7 @@ function Index() {
     if (inPenalty && PENALTY.every((p) => next.done.includes(p.id))) {
       next = { ...next, penaltyUntil: null, dare: null, done: [] };
       setMsg("[RENDSZER] Büntetés teljesítve. Visszatérés a normál küldetésekhez.");
-    } else setMsg(after > before ? `[SZINTLÉPÉS: ${after}] ${pick(SENSEI.levelup)}` : `+${gain} XP · ${pick(SENSEI.done)}`);
+    } else setMsg(after > before ? `[SZINTLÉPÉS: ${after}] ${pick(m.levelup)}` : `+${gain} XP · ${pick(m.done)}`);
     setS(next);
   }
 
@@ -235,8 +235,22 @@ function Index() {
 
       <section className="space-y-4">
         <div className="system-window p-4 border-l-4 border-l-accent">
-          <p className="font-display text-xs text-accent">SENSEI</p>
-          <p className="text-lg">„{msg}”</p>
+          <div className="flex items-center justify-between">
+            <p className="font-display text-xs text-accent">MENTOR · {m.name.toUpperCase()}</p>
+            <button onClick={() => setShowM(!showM)} className="text-xs text-muted-foreground underline">cserél</button>
+          </div>
+          <p className="text-lg">„{msg}"</p>
+          {showM && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+              {(Object.keys(MENTORS) as MentorId[]).map((id) => (
+                <button key={id} onClick={() => { setS({ ...s, mentor: id }); setShowM(false); setMsg(pick(MENTORS[id].idle)); }}
+                  className={`p-2 border text-left text-sm ${s.mentor === id ? "border-primary bg-primary/10" : "border-border hover:border-primary"}`}>
+                  <span className="font-display">{MENTORS[id].name}</span>
+                  <span className="block text-xs text-muted-foreground">{MENTORS[id].title}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {inPenalty && (
