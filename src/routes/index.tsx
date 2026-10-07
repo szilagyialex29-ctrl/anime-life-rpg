@@ -50,7 +50,7 @@ const SENSEI = {
   idle: ["Még mindig a kanapén? A dokkolt avatárod sír.", "A tegnapi éned is ennyit mondott.", "Edzés vagy kifogás. Választhatsz."],
   levelup: ["SZINTLÉPÉS. Na ne bízd el magad.", "Új szint. A hétköznapi emberek most kezdenek irigyelni."],
 };
-const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)];
+const pick = (a: string[]): string => a[Math.floor(Math.random() * a.length)] ?? "";
 const today = () => new Date().toISOString().slice(0, 10);
 
 type State = {
