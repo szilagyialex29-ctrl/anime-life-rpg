@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
       { title: "Glow-Up Rendszer — Szintlépős életmód tracker" },
       { name: "description", content: "Edzés, bőrápolás, tanulás és alvás RPG-stílusban: lépj szintet, fejleszd anime avatárod." },
       { property: "og:title", content: "Glow-Up Rendszer" },
-      { property: "og:description", content: "Napi küldetések, XP, szarkasztikus Sensei. Lépj szintet a valóságban." },
+      { property: "og:description", content: "Napi küldetések, XP, és válassz mentort: Jinwoo, Cha Hae-In, Yoo Jin-Ho és többek. Lépj szintet a valóságban." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -45,16 +45,57 @@ const DARES = [
   "Mondd el drámai anime-monológban, miért hagytad ki a küldetést.",
   "Csinálj 'reggeli rutin' videót mint egy túlbuzgó influenszer.",
 ];
-const SENSEI = {
-  done: ["Hm. Nem vagy teljesen reménytelen.", "Egy pipa. Ne kérj tapsot.", "Lassan, de még ez is haladás."],
-  idle: ["Még mindig a kanapén? A dokkolt avatárod sír.", "A tegnapi éned is ennyit mondott.", "Edzés vagy kifogás. Választhatsz."],
-  levelup: ["SZINTLÉPÉS. Na ne bízd el magad.", "Új szint. A hétköznapi emberek most kezdenek irigyelni."],
+type MentorId = "jinwoo" | "chahaein" | "jinho" | "gunhee" | "yoonho" | "jinchul";
+const MENTORS: Record<MentorId, { name: string; title: string; done: string[]; idle: string[]; levelup: string[] }> = {
+  jinwoo: {
+    name: "Sung Jin-Woo",
+    title: "A Rendszer hangja",
+    done: ["Kelj fel. A munkád még nem vége.", "Elfogadva. Folytasd.", "Ez még nem monarchia-szintű teljesítmény. De közel."],
+    idle: ["Arise... az ágyadból.", "Az árnyékaid is türelmesebbek nálad.", "A kapuk nem várnak. Te meg vártatsz."],
+    levelup: ["SZINTLÉPÉS. A Rendszer elismeri. Ne bízd el magad.", "Erősödsz. Jó. Lesz még mit oltalmaznod."],
+  },
+  chahaein: {
+    name: "Cha Hae-In",
+    title: "S-rangú kardtáncos",
+    done: ["Megéreztem: ma is gyűjtöd az erőt.", "Szép munka. Több dícséretet majd a következő szintnél.", "Látom a szorgalmat. Tartsd meg."],
+    idle: ["A kardom azt súgja: mozdulj.", "Illat alapján is kiderül, hogy ma nem edzettél.", "Egy S-rangú vadász is naponta edz. És te?"],
+    levelup: ["Erősebb lettél. Ezt a levegőben is érzem.", "Új szint. Megérdemelted – ne duzzadj azonnal."],
+  },
+  jinho: {
+    name: "Yoo Jin-Ho",
+    title: "A leghűségesebb haver",
+    done: ["Nagykönyv, főnök! Ezt kinyomtatjuk!", "Látod? Ez már szinte S-rangú mozdulat!", "Haver leszel belőlem, főnök, emlékezz a szavamra!"],
+    idle: ["Főnök, ha mozdulnánk is egy kicsit?", "Ha a guildem büntetné a kifogásokat, most a sarokban ülnél.", "Ne szomorkodj, főnök. Együtt gyengék, együtt erősek!"],
+    levelup: ["SZINTLÉPÉS!! Főnök, ki vagy te, egy másik személy vagy már?!", "Rangemelés! Majd szobrot állítok, szinte kész is!"],
+  },
+  gunhee: {
+    name: "Go Gun-Hee",
+    title: "A Szövetség elnöke",
+    done: ["Fegyelmezett. Ez a legnagyobb erény.", "Lassú léptekkel is fel lehet érni, ha naponta léptek.", "Jó. Az ilyen apróságokból lesz a rang."],
+    idle: ["Ifjú, a szorgalom sokszor felülmúlja a tehetséget.", "Ülj le magaddal: kifogás vagy fejlődés?", "A korom nem engedi, különben helyetted edzenék."],
+    levelup: ["Fejlődsz. Elnöki elismerésben részesültél.", "Szintet léptél. Emlékezz: az erő akkor ér valamit, ha oltalmaz."],
+  },
+  yoonho: {
+    name: "Baek Yoon-Ho",
+    title: "A Vörös Sarkány vezetője",
+    done: ["Hah! Csak így! Még százat!", "Nem rossz. De lehetne vadabb is!", "Ilyen tempóban tényleg lesz belőled vadász."],
+    idle: ["Szunnyadsz? A mancsaid nem díszek!", "Szedd össze magad! A vadászok nem a kanapén születnek!", "Ha így folytatod, majd beszipáblázlak magadnak az edzőterembe!"],
+    levelup: ["GYAKORLOD! Ezt kellett! Még erősebben!", "Új szint! Mostantól még keményebben edzek veled!"],
+  },
+  jinchul: {
+    name: "Woo Jin-Chul",
+    title: "Felügyelő, Szövetség",
+    done: ["Rögzítve. Megfelelő teljesítmény.", "Jelentés elfogadva. Folytassa.", "Az adatok szerint fejleszted magad. Jó jel."],
+    idle: ["Emlékeztető: a napi küldetések határideje közeleg.", "Az Ön jelentkezése eddig elmaradt. Javítsa.", "A Szövetség figyeli a fejlődését. Vagy színlel. Nem mindegy."],
+    levelup: ["Szintlépés visszaigazolva. Hivatalból is gratulálok.", "Rangemelés rögzítve. Tartsa a színvonalat."],
+  },
 };
 const pick = (a: string[]): string => a[Math.floor(Math.random() * a.length)] ?? "";
 const today = () => new Date().toISOString().slice(0, 10);
 
 type State = {
   cls: ClassId | null;
+  mentor: MentorId | null;
   name: string;
   xp: number;
   stats: Record<Stat, number>;
@@ -64,7 +105,7 @@ type State = {
   dare: string | null;
 };
 const initial: State = {
-  cls: null, name: "", xp: 0, day: today(), done: [], penaltyUntil: null, dare: null,
+  cls: null, mentor: null, name: "", xp: 0, day: today(), done: [], penaltyUntil: null, dare: null,
   stats: { STR: 1, CHA: 1, INT: 1, HP: 1, MANA: 1 },
 };
 const xpFor = (lvl: number) => 100 + lvl * 50;
@@ -80,11 +121,14 @@ function Index() {
   const [loaded, setLoaded] = useState(false);
   const [msg, setMsg] = useState<string>("");
   const [pick1, setPick1] = useState<ClassId>("warrior");
+  const [pickM, setPickM] = useState<MentorId>("jinwoo");
+  const [showM, setShowM] = useState(false);
   const [nm, setNm] = useState("");
 
   useEffect(() => {
     const raw = localStorage.getItem("glowup");
     let st: State = raw ? { ...initial, ...JSON.parse(raw) } : initial;
+    if (st.cls && !st.mentor) st = { ...st, mentor: "jinwoo" as MentorId };
     if (st.cls && st.day !== today()) {
       const failed = st.done.filter((d) => QUESTS.some((q) => q.id === d)).length < QUESTS.length;
       st = { ...st, day: today(), done: [] };
@@ -92,7 +136,7 @@ function Index() {
     }
     if (st.penaltyUntil && Date.now() > st.penaltyUntil) st = { ...st, penaltyUntil: null, dare: null };
     setS(st); setLoaded(true);
-    setMsg(st.penaltyUntil ? "[FIGYELMEZTETÉS] Büntetési zóna aktív." : pick(SENSEI.idle));
+    setMsg(st.penaltyUntil ? "[FIGYELMEZTETÉS] Büntetési zóna aktív." : pick(MENTORS[st.mentor ?? "jinwoo"].idle));
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem("glowup", JSON.stringify(s)); }, [s, loaded]);
 
@@ -118,10 +162,23 @@ function Index() {
             </button>
           ))}
         </div>
+        <div className="system-window p-4 mt-6">
+          <p className="font-display text-xs text-primary mb-1">[ MENTOR ]</p>
+          <p className="text-sm text-muted-foreground mb-3">Nem mindenki lehet Jinwoo. Válassz, ki szóljon rád.</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {(Object.keys(MENTORS) as MentorId[]).map((id) => (
+              <button key={id} onClick={() => setPickM(id)}
+                className={`p-3 border text-left ${pickM === id ? "border-primary bg-primary/10" : "border-border hover:border-primary opacity-80 hover:opacity-100"}`}>
+                <span className="font-display">{MENTORS[id].name}</span>
+                <span className="block text-xs text-muted-foreground">{MENTORS[id].title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="system-window p-4 mt-6 flex flex-col md:flex-row gap-3">
           <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder="Játékosnév"
             className="flex-1 bg-input/20 border border-input px-3 py-2 outline-none focus:border-primary" />
-          <button disabled={!nm.trim()} onClick={() => setS({ ...initial, cls: pick1, name: nm.trim() })}
+          <button disabled={!nm.trim()} onClick={() => { setS({ ...initial, cls: pick1, mentor: pickM, name: nm.trim() }); setMsg(pick(MENTORS[pickM].idle)); }}
             className="font-display bg-primary text-primary-foreground px-6 py-2 disabled:opacity-40">ÉBREDÉS</button>
         </div>
       </main>
@@ -129,6 +186,7 @@ function Index() {
   }
 
   const c = CLASSES[s.cls];
+  const m = MENTORS[s.mentor ?? "jinwoo"];
   const lv = levelOf(s.xp);
   const inPenalty = !!s.penaltyUntil;
   const list = inPenalty ? PENALTY : QUESTS;
@@ -144,7 +202,7 @@ function Index() {
     if (inPenalty && PENALTY.every((p) => next.done.includes(p.id))) {
       next = { ...next, penaltyUntil: null, dare: null, done: [] };
       setMsg("[RENDSZER] Büntetés teljesítve. Visszatérés a normál küldetésekhez.");
-    } else setMsg(after > before ? `[SZINTLÉPÉS: ${after}] ${pick(SENSEI.levelup)}` : `+${gain} XP · ${pick(SENSEI.done)}`);
+    } else setMsg(after > before ? `[SZINTLÉPÉS: ${after}] ${pick(m.levelup)}` : `+${gain} XP · ${pick(m.done)}`);
     setS(next);
   }
 
@@ -177,8 +235,22 @@ function Index() {
 
       <section className="space-y-4">
         <div className="system-window p-4 border-l-4 border-l-accent">
-          <p className="font-display text-xs text-accent">SENSEI</p>
-          <p className="text-lg">„{msg}”</p>
+          <div className="flex items-center justify-between">
+            <p className="font-display text-xs text-accent">MENTOR · {m.name.toUpperCase()}</p>
+            <button onClick={() => setShowM(!showM)} className="text-xs text-muted-foreground underline">cserél</button>
+          </div>
+          <p className="text-lg">„{msg}"</p>
+          {showM && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+              {(Object.keys(MENTORS) as MentorId[]).map((id) => (
+                <button key={id} onClick={() => { setS({ ...s, mentor: id }); setShowM(false); setMsg(pick(MENTORS[id].idle)); }}
+                  className={`p-2 border text-left text-sm ${s.mentor === id ? "border-primary bg-primary/10" : "border-border hover:border-primary"}`}>
+                  <span className="font-display">{MENTORS[id].name}</span>
+                  <span className="block text-xs text-muted-foreground">{MENTORS[id].title}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {inPenalty && (
