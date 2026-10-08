@@ -31,5 +31,5 @@ describe("dungeon keys", () => {
     expect(keysAvailable(3, 1)).toBe(2);
     expect(keysAvailable(1, 2)).toBe(0);
   });
-  it("E gate opens at level 1", () => { expect(GATES[0].minLevel).toBe(1); });
+  it("E gate opens at level 1", () => { expect(GATES[0]?.minLevel).toBe(1); });
 });
