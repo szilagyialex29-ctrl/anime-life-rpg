@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Equipment } from "@/components/equipment";
 import { MentorAdvice } from "@/components/mentor-advice";
+import { DungeonGates } from "@/components/dungeon-gate";
 import { CLASSES, MENTORS, QUESTS, PENALTY, DARES, type Stat, type ClassId, type MentorId } from "@/lib/game-data";
 import { levelOf, rank, resolveEquipment, resolveAura, type EquipmentId, type AuraId } from "@/lib/progression";
 import { AVATAR_IMAGES, MENTOR_IMAGES } from "@/lib/avatar-assets";
@@ -218,6 +219,7 @@ function Index() {
             <p className="text-xs text-muted-foreground mt-4">Figyelem: ha éjfélig nem teljesíted mindet, a Rendszer büntetési zónába helyez.</p>
           )}
         </div>
+        <DungeonGates level={lv.level} stats={s.stats} day={s.day} doneToday={s.done.filter(id => !id.startsWith("p")).length} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
         <MentorAdvice key={s.mentor ?? "jinwoo"} player={{ mentor: s.mentor ?? "jinwoo", cls: s.cls, name: s.name.slice(0,100), xp: s.xp, stats: s.stats, done: s.done, inPenalty }} />
       </section>
     </main>
