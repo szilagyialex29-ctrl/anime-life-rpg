@@ -25,3 +25,11 @@ describe("Personalized mentor advice", () => {
   });
   it("rejects an unknown mentor", () => { expect(mentorInput.safeParse({ ...input, mentor: "unknown" }).success).toBe(false); });
 });
+import { keysAvailable, GATES } from "@/lib/dungeon";
+describe("dungeon keys", () => {
+  it("one key per completed quest minus used", () => {
+    expect(keysAvailable(3, 1)).toBe(2);
+    expect(keysAvailable(1, 2)).toBe(0);
+  });
+  it("E gate opens at level 1", () => { expect(GATES[0]?.minLevel).toBe(1); });
+});
