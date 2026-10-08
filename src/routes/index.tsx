@@ -137,8 +137,7 @@ function Index() {
     <main className="min-h-screen px-4 py-8 max-w-6xl mx-auto grid lg:grid-cols-[340px_1fr] gap-6">
       <aside className="space-y-4">
         <div className={`system-window overflow-hidden relative avatar-aura-${aura.id}`}>
-          <img src={AVATAR_IMAGES[s.cls][equipment.tier]} alt={c.name} width={768} height={1024} className="w-full aspect-[3/4] object-cover"
-            style={{ filter: `drop-shadow(0 0 ${auraLvl}px var(--color-primary)) saturate(${1 + auraLvl / 30})` }} />
+          <img src={AVATAR_IMAGES[s.cls][equipment.tier]} alt={c.name} width={512} height={512} className="w-full aspect-square object-cover" />
           <div className="absolute top-3 right-3 font-display text-4xl glow-text">{rank(lv.level)}</div>
           <div className="p-4">
             <p className="font-display text-xs text-primary">{c.name.toUpperCase()}</p>
