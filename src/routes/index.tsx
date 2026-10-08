@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import warrior from "@/assets/warrior.jpg";
-import mage from "@/assets/mage.jpg";
-import wanderer from "@/assets/wanderer.jpg";
+import { Button } from "@/components/ui/button";
+import { Equipment } from "@/components/equipment";
+import { MentorAdvice } from "@/components/mentor-advice";
+import { CLASSES, MENTORS, QUESTS, PENALTY, DARES, type Stat, type ClassId, type MentorId } from "@/lib/game-data";
+import { levelOf, rank, resolveEquipment, resolveAura, type EquipmentId, type AuraId } from "@/lib/progression";
+import { AVATAR_IMAGES, MENTOR_IMAGES } from "@/lib/avatar-assets";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,82 +21,12 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Stat = "STR" | "CHA" | "INT" | "HP" | "MANA";
-type ClassId = "warrior" | "mage" | "wanderer";
-const CLASSES: Record<ClassId, { name: string; img: string; bonus: Stat; desc: string }> = {
-  warrior: { name: "Harcos", img: warrior, bonus: "STR", desc: "+20% XP edzésre" },
-  mage: { name: "Mágus", img: mage, bonus: "INT", desc: "+20% XP tanulásra" },
-  wanderer: { name: "Vándor", img: wanderer, bonus: "CHA", desc: "+20% XP stílusra" },
-};
-const QUESTS: { id: string; label: string; stat: Stat; xp: number }[] = [
-  { id: "pushups", label: "50 fekvőtámasz", stat: "STR", xp: 30 },
-  { id: "run", label: "20 perc futás / séta", stat: "STR", xp: 30 },
-  { id: "skin", label: "Esti bőrápolási rutin", stat: "CHA", xp: 20 },
-  { id: "outfit", label: "Átgondolt outfit ma", stat: "CHA", xp: 15 },
-  { id: "study", label: "45 perc fókuszált tanulás", stat: "INT", xp: 30 },
-  { id: "sleep", label: "7+ óra alvás", stat: "HP", xp: 25 },
-  { id: "water", label: "2 liter víz", stat: "MANA", xp: 20 },
-];
-const PENALTY = [
-  { id: "p1", label: "150 fekvőtámasz + 100 guggolás", stat: "STR" as Stat, xp: 10 },
-  { id: "p2", label: "10 km gyaloglás", stat: "HP" as Stat, xp: 10 },
-  { id: "p3", label: "2 óra tanulás telefon nélkül", stat: "INT" as Stat, xp: 10 },
-];
-const DARES = [
-  "Táncold el a legcikibb trendet a nappaliban, és posztold.",
-  "Énekelj el egy Disney-dalt teljes átéléssel, kamerába.",
-  "Mondd el drámai anime-monológban, miért hagytad ki a küldetést.",
-  "Csinálj 'reggeli rutin' videót mint egy túlbuzgó influenszer.",
-];
-type MentorId = "jinwoo" | "chahaein" | "jinho" | "gunhee" | "yoonho" | "jinchul";
-const MENTORS: Record<MentorId, { name: string; title: string; done: string[]; idle: string[]; levelup: string[] }> = {
-  jinwoo: {
-    name: "Sung Jin-Woo",
-    title: "A Rendszer hangja",
-    done: ["Kelj fel. A munkád még nem vége.", "Elfogadva. Folytasd.", "Ez még nem monarchia-szintű teljesítmény. De közel."],
-    idle: ["Arise... az ágyadból.", "Az árnyékaid is türelmesebbek nálad.", "A kapuk nem várnak. Te meg vártatsz."],
-    levelup: ["SZINTLÉPÉS. A Rendszer elismeri. Ne bízd el magad.", "Erősödsz. Jó. Lesz még mit oltalmaznod."],
-  },
-  chahaein: {
-    name: "Cha Hae-In",
-    title: "S-rangú kardtáncos",
-    done: ["Megéreztem: ma is gyűjtöd az erőt.", "Szép munka. Több dícséretet majd a következő szintnél.", "Látom a szorgalmat. Tartsd meg."],
-    idle: ["A kardom azt súgja: mozdulj.", "Illat alapján is kiderül, hogy ma nem edzettél.", "Egy S-rangú vadász is naponta edz. És te?"],
-    levelup: ["Erősebb lettél. Ezt a levegőben is érzem.", "Új szint. Megérdemelted – ne duzzadj azonnal."],
-  },
-  jinho: {
-    name: "Yoo Jin-Ho",
-    title: "A leghűségesebb haver",
-    done: ["Nagykönyv, főnök! Ezt kinyomtatjuk!", "Látod? Ez már szinte S-rangú mozdulat!", "Haver leszel belőlem, főnök, emlékezz a szavamra!"],
-    idle: ["Főnök, ha mozdulnánk is egy kicsit?", "Ha a guildem büntetné a kifogásokat, most a sarokban ülnél.", "Ne szomorkodj, főnök. Együtt gyengék, együtt erősek!"],
-    levelup: ["SZINTLÉPÉS!! Főnök, ki vagy te, egy másik személy vagy már?!", "Rangemelés! Majd szobrot állítok, szinte kész is!"],
-  },
-  gunhee: {
-    name: "Go Gun-Hee",
-    title: "A Szövetség elnöke",
-    done: ["Fegyelmezett. Ez a legnagyobb erény.", "Lassú léptekkel is fel lehet érni, ha naponta léptek.", "Jó. Az ilyen apróságokból lesz a rang."],
-    idle: ["Ifjú, a szorgalom sokszor felülmúlja a tehetséget.", "Ülj le magaddal: kifogás vagy fejlődés?", "A korom nem engedi, különben helyetted edzenék."],
-    levelup: ["Fejlődsz. Elnöki elismerésben részesültél.", "Szintet léptél. Emlékezz: az erő akkor ér valamit, ha oltalmaz."],
-  },
-  yoonho: {
-    name: "Baek Yoon-Ho",
-    title: "A Vörös Sarkány vezetője",
-    done: ["Hah! Csak így! Még százat!", "Nem rossz. De lehetne vadabb is!", "Ilyen tempóban tényleg lesz belőled vadász."],
-    idle: ["Szunnyadsz? A mancsaid nem díszek!", "Szedd össze magad! A vadászok nem a kanapén születnek!", "Ha így folytatod, majd beszipáblázlak magadnak az edzőterembe!"],
-    levelup: ["GYAKORLOD! Ezt kellett! Még erősebben!", "Új szint! Mostantól még keményebben edzek veled!"],
-  },
-  jinchul: {
-    name: "Woo Jin-Chul",
-    title: "Felügyelő, Szövetség",
-    done: ["Rögzítve. Megfelelő teljesítmény.", "Jelentés elfogadva. Folytassa.", "Az adatok szerint fejleszted magad. Jó jel."],
-    idle: ["Emlékeztető: a napi küldetések határideje közeleg.", "Az Ön jelentkezése eddig elmaradt. Javítsa.", "A Szövetség figyeli a fejlődését. Vagy színlel. Nem mindegy."],
-    levelup: ["Szintlépés visszaigazolva. Hivatalból is gratulálok.", "Rangemelés rögzítve. Tartsa a színvonalat."],
-  },
-};
 const pick = (a: string[]): string => a[Math.floor(Math.random() * a.length)] ?? "";
 const today = () => new Date().toISOString().slice(0, 10);
 
 type State = {
+  equipment: EquipmentId;
+  aura: AuraId;
   cls: ClassId | null;
   mentor: MentorId | null;
   name: string;
@@ -105,17 +38,9 @@ type State = {
   dare: string | null;
 };
 const initial: State = {
-  cls: null, mentor: null, name: "", xp: 0, day: today(), done: [], penaltyUntil: null, dare: null,
+  equipment: "starter", aura: "none", cls: null, mentor: null, name: "", xp: 0, day: today(), done: [], penaltyUntil: null, dare: null,
   stats: { STR: 1, CHA: 1, INT: 1, HP: 1, MANA: 1 },
 };
-const xpFor = (lvl: number) => 100 + lvl * 50;
-function levelOf(xp: number) {
-  let l = 1, r = xp;
-  while (r >= xpFor(l)) { r -= xpFor(l); l++; }
-  return { level: l, cur: r, need: xpFor(l) };
-}
-const rank = (l: number) => (l >= 30 ? "S" : l >= 20 ? "A" : l >= 12 ? "B" : l >= 7 ? "C" : l >= 3 ? "D" : "E");
-
 function Index() {
   const [s, setS] = useState<State>(initial);
   const [loaded, setLoaded] = useState(false);
@@ -127,7 +52,8 @@ function Index() {
 
   useEffect(() => {
     const raw = localStorage.getItem("glowup");
-    let st: State = raw ? { ...initial, ...JSON.parse(raw) } : initial;
+    let st: State = { ...initial };
+    try { if (raw) st = { ...initial, ...JSON.parse(raw) }; } catch { localStorage.removeItem("glowup"); }
     if (st.cls && !st.mentor) st = { ...st, mentor: "jinwoo" as MentorId };
     if (st.cls && st.day !== today()) {
       const failed = st.done.filter((d) => QUESTS.some((q) => q.id === d)).length < QUESTS.length;
@@ -152,14 +78,14 @@ function Index() {
         </div>
         <div className="grid md:grid-cols-3 gap-4">
           {(Object.keys(CLASSES) as ClassId[]).map((id) => (
-            <button key={id} onClick={() => setPick1(id)}
-              className={`system-window overflow-hidden text-left transition ${pick1 === id ? "ring-2 ring-primary scale-[1.02]" : "opacity-70 hover:opacity-100"}`}>
+            <Button variant="ghost" key={id} onClick={() => setPick1(id)}
+              className={`system-window h-auto p-0 block whitespace-normal overflow-hidden text-left transition ${pick1 === id ? "ring-2 ring-primary scale-[1.02]" : "opacity-70 hover:opacity-100"}`}>
               <img src={CLASSES[id].img} alt={CLASSES[id].name} width={768} height={1024} className="w-full aspect-[3/4] object-cover" />
               <div className="p-4">
                 <h2 className="font-display text-xl">{CLASSES[id].name}</h2>
                 <p className="text-accent text-sm">{CLASSES[id].desc}</p>
               </div>
-            </button>
+            </Button>
           ))}
         </div>
         <div className="system-window p-4 mt-6">
@@ -167,19 +93,19 @@ function Index() {
           <p className="text-sm text-muted-foreground mb-3">Nem mindenki lehet Jinwoo. Válassz, ki szóljon rád.</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {(Object.keys(MENTORS) as MentorId[]).map((id) => (
-              <button key={id} onClick={() => setPickM(id)}
-                className={`p-3 border text-left ${pickM === id ? "border-primary bg-primary/10" : "border-border hover:border-primary opacity-80 hover:opacity-100"}`}>
+              <Button variant="ghost" key={id} onClick={() => setPickM(id)}
+                className={`h-auto whitespace-normal justify-start p-3 border text-left gap-3 ${pickM === id ? "border-primary bg-primary/10" : "border-border hover:border-primary opacity-80 hover:opacity-100"}`}>
                 <span className="font-display">{MENTORS[id].name}</span>
                 <span className="block text-xs text-muted-foreground">{MENTORS[id].title}</span>
-              </button>
+              </Button>
             ))}
           </div>
         </div>
         <div className="system-window p-4 mt-6 flex flex-col md:flex-row gap-3">
           <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder="Játékosnév"
             className="flex-1 bg-input/20 border border-input px-3 py-2 outline-none focus:border-primary" />
-          <button disabled={!nm.trim()} onClick={() => { setS({ ...initial, cls: pick1, mentor: pickM, name: nm.trim() }); setMsg(pick(MENTORS[pickM].idle)); }}
-            className="font-display bg-primary text-primary-foreground px-6 py-2 disabled:opacity-40">ÉBREDÉS</button>
+          <Button variant="ghost" disabled={!nm.trim()} onClick={() => { setS({ ...initial, cls: pick1, mentor: pickM, name: nm.trim() }); setMsg(pick(MENTORS[pickM].idle)); }}
+            className="font-display bg-primary text-primary-foreground px-6 py-2 disabled:opacity-40">ÉBREDÉS</Button>
         </div>
       </main>
     );
@@ -190,7 +116,8 @@ function Index() {
   const lv = levelOf(s.xp);
   const inPenalty = !!s.penaltyUntil;
   const list = inPenalty ? PENALTY : QUESTS;
-  const auraLvl = Math.min(lv.level, 30);
+  const equipment = resolveEquipment(s.equipment, lv.level);
+  const aura = resolveAura(s.aura, lv.level);
 
   function complete(q: { id: string; stat: Stat; xp: number }) {
     if (s.done.includes(q.id)) return;
@@ -209,14 +136,14 @@ function Index() {
   return (
     <main className="min-h-screen px-4 py-8 max-w-6xl mx-auto grid lg:grid-cols-[340px_1fr] gap-6">
       <aside className="space-y-4">
-        <div className="system-window overflow-hidden relative">
-          <img src={c.img} alt={c.name} width={768} height={1024} className="w-full aspect-[3/4] object-cover"
+        <div className={`system-window overflow-hidden relative avatar-aura-${aura.id}`}>
+          <img src={AVATAR_IMAGES[s.cls][equipment.tier]} alt={c.name} width={768} height={1024} className="w-full aspect-[3/4] object-cover"
             style={{ filter: `drop-shadow(0 0 ${auraLvl}px var(--color-primary)) saturate(${1 + auraLvl / 30})` }} />
           <div className="absolute top-3 right-3 font-display text-4xl glow-text">{rank(lv.level)}</div>
           <div className="p-4">
             <p className="font-display text-xs text-primary">{c.name.toUpperCase()}</p>
             <h1 className="font-display text-2xl">{s.name}</h1>
-            <p className="text-muted-foreground">Szint {lv.level}</p>
+            <p className="text-muted-foreground">Szint {lv.level}</p><p className="text-xs text-accent mt-1">{equipment.name} · {aura.name}</p>
             <div className="h-2 bg-muted mt-2"><div className="h-full bg-primary" style={{ width: `${(lv.cur / lv.need) * 100}%` }} /></div>
             <p className="text-xs text-muted-foreground mt-1">{lv.cur} / {lv.need} XP</p>
           </div>
@@ -229,25 +156,26 @@ function Index() {
             </div>
           ))}
         </div>
-        <button onClick={() => { if (confirm("Biztos újrakezded?")) { localStorage.removeItem("glowup"); setS(initial); } }}
-          className="text-xs text-muted-foreground underline">Új karakter</button>
+        <Equipment cls={s.cls} level={lv.level} equipment={equipment.id} aura={aura.id} onEquip={id => setS({ ...s, equipment: id })} onAura={id => setS({ ...s, aura: id })} />
+        <Button variant="ghost" onClick={() => { if (confirm("Biztos újrakezded?")) { localStorage.removeItem("glowup"); setS(initial); } }}
+          className="text-xs text-muted-foreground underline">Új karakter</Button>
       </aside>
 
       <section className="space-y-4">
         <div className="system-window p-4 border-l-4 border-l-accent">
           <div className="flex items-center justify-between">
             <p className="font-display text-xs text-accent">MENTOR · {m.name.toUpperCase()}</p>
-            <button onClick={() => setShowM(!showM)} className="text-xs text-muted-foreground underline">cserél</button>
+            <Button variant="ghost" onClick={() => setShowM(!showM)} className="text-xs text-muted-foreground underline">cserél</Button>
           </div>
-          <p className="text-lg">„{msg}"</p>
+          <div className="flex items-center gap-3 mt-3"><img src={MENTOR_IMAGES[s.mentor ?? "jinwoo"]} alt={m.name} width={80} height={80} className="size-16 object-cover shrink-0 border border-accent" /><p className="text-lg">„{msg}"</p></div>
           {showM && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
               {(Object.keys(MENTORS) as MentorId[]).map((id) => (
-                <button key={id} onClick={() => { setS({ ...s, mentor: id }); setShowM(false); setMsg(pick(MENTORS[id].idle)); }}
-                  className={`p-2 border text-left text-sm ${s.mentor === id ? "border-primary bg-primary/10" : "border-border hover:border-primary"}`}>
+                <Button variant="ghost" key={id} onClick={() => { setS({ ...s, mentor: id }); setShowM(false); setMsg(pick(MENTORS[id].idle)); }}
+                  className={`h-auto whitespace-normal justify-start p-2 border text-left text-sm gap-2 ${s.mentor === id ? "border-primary bg-primary/10" : "border-border hover:border-primary"}`}>
                   <span className="font-display">{MENTORS[id].name}</span>
                   <span className="block text-xs text-muted-foreground">{MENTORS[id].title}</span>
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -263,7 +191,7 @@ function Index() {
                 <br />Csak vicces, ártalmatlan dolgot posztolj – semmi veszélyes vagy olyat, amit tényleg megbánnál.
               </p>
             )}
-            <p className="text-xs text-muted-foreground mt-2">Lejár: {new Date(s.penaltyUntil!).toLocaleString("hu-HU")}</p>
+            <p className="text-xs text-muted-foreground mt-2">Lejár: {new Date(s.penaltyUntil ?? 0).toLocaleString("hu-HU")}</p>
           </div>
         )}
 
@@ -275,14 +203,14 @@ function Index() {
               const d = s.done.includes(q.id);
               return (
                 <li key={q.id}>
-                  <button onClick={() => complete(q)} disabled={d}
-                    className={`w-full flex items-center justify-between gap-3 p-3 border transition ${d ? "border-primary bg-primary/10 opacity-60" : "border-border hover:border-primary hover:bg-primary/5"}`}>
+                  <Button variant="ghost" onClick={() => complete(q)} disabled={d}
+                    className={`w-full h-auto whitespace-normal text-left flex items-center justify-between gap-3 p-3 border transition ${d ? "border-primary bg-primary/10 opacity-60" : "border-border hover:border-primary hover:bg-primary/5"}`}>
                     <span className="flex items-center gap-3">
                       <span className={`w-5 h-5 border border-primary grid place-items-center text-xs ${d ? "bg-primary text-primary-foreground" : ""}`}>{d ? "✓" : ""}</span>
                       <span className={d ? "line-through" : ""}>{q.label}</span>
                     </span>
                     <span className="font-display text-xs text-accent">{q.stat} · +{q.xp}XP</span>
-                  </button>
+                  </Button>
                 </li>
               );
             })}
@@ -291,6 +219,7 @@ function Index() {
             <p className="text-xs text-muted-foreground mt-4">Figyelem: ha éjfélig nem teljesíted mindet, a Rendszer büntetési zónába helyez.</p>
           )}
         </div>
+        <MentorAdvice key={s.mentor ?? "jinwoo"} player={{ mentor: s.mentor ?? "jinwoo", cls: s.cls, name: s.name.slice(0,100), xp: s.xp, stats: s.stats, done: s.done, inPenalty }} />
       </section>
     </main>
   );
