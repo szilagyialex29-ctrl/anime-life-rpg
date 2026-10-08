@@ -38,7 +38,7 @@ export async function mentorAdvice(request: Request, apiKey: string, data: Mento
     const text = await call.result.text;
     const finishReason = await call.result.finishReason;
     if (!text.trim() || finishReason === "content-filter") return { error: "A mentor nem adott tanácsot erre a kérésre.", status: 422 };
-    return { text, status: 200 };
+    return { text, status: 200, runId: call.getRunId() };
   } catch (error) {
     if (request.signal.aborted) return { error: "A kérés leállítva.", status: 499 };
     let status = 500;
@@ -54,6 +54,6 @@ export async function mentorAdvice(request: Request, apiKey: string, data: Mento
       const saved = await supabaseAdmin.from("ai_access_guard").upsert({ id: "mentor", status, message, updated_at: new Date().toISOString() });
       if (saved.error) console.error("Could not persist AI access pause", saved.error.code);
     }
-    return { error: message, status };
+    return { error: message, status, runId: call.getRunId() };
   }
 }
