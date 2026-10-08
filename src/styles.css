@@ -82,6 +82,10 @@
   --border: oklch(0.72 0.17 240 / 35%);
   --input: oklch(0.72 0.17 240 / 30%);
   --ring: oklch(0.72 0.17 240);
+  --aura-frost: oklch(0.78 0.17 230);
+  --aura-emerald: oklch(0.78 0.19 155);
+  --aura-gold: oklch(0.85 0.16 85);
+  --aura-shadow: 0 0 25px 3px;
   --chart-1: oklch(0.65 0.2 25);
   --chart-2: oklch(0.75 0.16 330);
   --chart-3: oklch(0.8 0.15 200);
@@ -110,7 +114,7 @@
   }
 }
 
-.font-display { font-family: 'Orbitron', sans-serif; letter-spacing: 0.08em; }
+.font-display { font-family: 'Orbitron', sans-serif; letter-spacing: 0; }
 .system-window {
   background: var(--color-card);
   border: 1px solid var(--color-border);
@@ -118,3 +122,12 @@
   backdrop-filter: blur(8px);
 }
 .glow-text { text-shadow: 0 0 12px oklch(0.72 0.17 240 / 80%); }
+
+.avatar-aura-frost { border-color: var(--aura-frost); box-shadow: var(--aura-shadow) var(--aura-frost); }
+.avatar-aura-emerald { border-color: var(--aura-emerald); box-shadow: var(--aura-shadow) var(--aura-emerald); }
+.avatar-aura-gold { border-color: var(--aura-gold); box-shadow: var(--aura-shadow) var(--aura-gold); }
+.aura-swatch { display: block; width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--border); }
+.aura-swatch-frost { background: var(--aura-frost); box-shadow: 0 0 8px var(--aura-frost); }
+.aura-swatch-emerald { background: var(--aura-emerald); box-shadow: 0 0 8px var(--aura-emerald); }
+.aura-swatch-gold { background: var(--aura-gold); box-shadow: 0 0 8px var(--aura-gold); }
+@media (prefers-reduced-motion: reduce) { .animate-spin { animation: none; } }
