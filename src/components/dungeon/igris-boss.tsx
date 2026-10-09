@@ -11,10 +11,10 @@ type State = { pos: THREE.Vector3; face: number; anim: string; hit?: number | un
 /** Splits the loose sword (separate parts standing beside the body in bind pose) off the skinned mesh. */
 function splitSword(mesh: THREE.SkinnedMesh) {
   const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry;
-  const p = g.attributes.position as THREE.BufferAttribute;
+  const p = g.getAttribute("position") as THREE.BufferAttribute;
   const n = p.count;
-  const par = Int32Array.from({ length: n }, (_, i) => i);
-  const find = (i: number) => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; } return i; };
+  const par: number[] = Array.from({ length: n }, (_, i) => i);
+  const find = (i: number) => { while (par[i] !== i) { par[i] = par[par[i]!]!; i = par[i]!; } return i; };
   const seen = new Map<string, number>();
   for (let i = 0; i < n; i++) {
     const k = `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
@@ -32,7 +32,7 @@ function splitSword(mesh: THREE.SkinnedMesh) {
     for (const name of attrs) {
       const src = g.attributes[name] as THREE.BufferAttribute; if (!src) continue;
       const out = new (src.array.constructor as Float32ArrayConstructor)(tris.length * 3 * src.itemSize);
-      tris.forEach((t, k) => { for (let v = 0; v < 3; v++) for (let c = 0; c < src.itemSize; c++) out[(k * 3 + v) * src.itemSize + c] = src.array[(t + v) * src.itemSize + c]; });
+      tris.forEach((t, k) => { for (let v = 0; v < 3; v++) for (let c = 0; c < src.itemSize; c++) out[(k * 3 + v) * src.itemSize + c] = src.array[(t + v) * src.itemSize + c] ?? 0; });
       geo.setAttribute(name, new THREE.BufferAttribute(out, src.itemSize, src.normalized));
     }
     return geo;
@@ -51,11 +51,12 @@ function buildIgris(src: THREE.Group, height: number, tint?: string) {
   const meshes: THREE.SkinnedMesh[] = [];
   root.traverse(o => { if ((o as THREE.SkinnedMesh).isSkinnedMesh) meshes.push(o as THREE.SkinnedMesh); });
   for (const mesh of meshes) {
-    const mat = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material).clone() as THREE.MeshPhongMaterial;
+    const base = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material; if (!base) continue;
+    const mat = base.clone() as THREE.MeshPhongMaterial;
     if (tint) { mat.emissive = new THREE.Color(tint); mat.emissiveIntensity = 0.25; }
     mesh.material = mat; mesh.castShadow = true; mesh.receiveShadow = true; mesh.frustumCulled = false;
     const { body, sword } = splitSword(mesh);
-    if (!hand || !sword.boundingBox || sword.attributes.position.count === 0) continue;
+    if (!hand || !sword.boundingBox || sword.getAttribute("position").count === 0) continue;
     mesh.geometry = body;
     const bb = sword.boundingBox;
     // Grip: middle of the handle (bottom part, below the crossguard).
