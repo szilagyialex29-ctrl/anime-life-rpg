@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { Button } from "@/components/ui/button";
 import type { Stat } from "@/lib/game-data";
 import { playerFighter, type Gate } from "@/lib/dungeon";
+import { IgrisBoss } from "./igris-boss";
 
 type View = "moba" | "action" | "platform";
 type Anim = "idle" | "walk" | "sprint" | "attack-melee-right" | "die" | "jump";
@@ -248,9 +249,9 @@ function World({ game, view, keys, onTick }: { game: React.MutableRefObject<Game
       {/* player aura */}
       <AuraRing get={() => g.pos} />
       <mesh ref={fx} rotation-x={-Math.PI / 2} visible={false}><ringGeometry args={[0.4, 0.5, 48]} /><meshBasicMaterial color="#60a5fa" transparent opacity={0.8} /></mesh>
-      {g.enemies.map(e => (
-        <Character key={e.id} url="/models/dungeon-orc.glb" height={e.boss ? 3.6 : 1.6} tint={e.boss ? "#7f1d1d" : undefined} get={() => e} />
-      ))}
+      {g.enemies.map(e => e.boss
+        ? <IgrisBoss key={e.id} height={3.4} tint="#5b0f0f" get={() => e} />
+        : <Character key={e.id} url="/models/dungeon-orc.glb" height={1.6} get={() => e} />)}
       <mesh ref={shield}><icosahedronGeometry args={[2.3, 1]} /><meshBasicMaterial color="#a855f7" wireframe transparent opacity={0.5} /></mesh>
       {g.runes.map((r, i) => <Rune key={i} get={() => r} />)}
     </>
