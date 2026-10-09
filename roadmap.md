@@ -2,4 +2,9 @@
 - [ ] Szintekhez kötött felszerelések és aurák, avatárra alkalmazás.
 - [ ] Mind a hat mentor saját névvel jelölt képe.
 - [ ] Személyre szabott MI tanács a mentor, statisztikák és küldetések alapján.
-- [ ] Feloldási szabályok és böngészős működés ellenőrzése.
+- [ ] Feloldási szabályok és böngészős működés ellenőrzése.## Mozgó 3D játék
+- [ ] Teljes képernyős 3D kapupálya három nézettel.
+- [ ] Küldetéses szakasz, kisebb ellenfelek és boss-harc.
+- [ ] Meglévő szintek, statisztikák, XP és árnyékkinyerés bekötése.
+- [ ] Asztali és érintős irányítás, HUD, szünet és újraindítás.
+- [ ] Böngészős ellenőrzés mozgásra, harcra, győzelemre és mobil méretre.
