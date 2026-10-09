@@ -232,7 +232,7 @@ function World({ game, view, keys, onTick }: { game: React.MutableRefObject<Game
     if (shield.current) { shield.current.visible = shielded && boss.hp > 0; shield.current.position.copy(boss.pos).setY(1.6); shield.current.rotation.y = clock.elapsedTime; }
 
     // camera
-    const off = view === "moba" ? [0, 13, 8] : view === "action" ? [0, 4.2, 7] : [13, 3.5, 0];
+    const off: [number, number, number] = view === "moba" ? [0, 13, 8] : view === "action" ? [0, 4.2, 7] : [13, 3.5, 0];
     camT.set(g.pos.x * (view === "platform" ? 0 : 1) + off[0], g.pos.y + off[1], g.pos.z + off[2]);
     camera.position.lerp(camT, 1 - Math.exp(-5 * dt));
     look.lerp(new THREE.Vector3(view === "platform" ? 0 : g.pos.x, g.pos.y + 1, g.pos.z - (view === "action" ? 3 : 0)), 1 - Math.exp(-8 * dt));
