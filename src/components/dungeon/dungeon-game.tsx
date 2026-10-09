@@ -153,8 +153,6 @@ function World({ game, view, keys, onTick }: { game: React.MutableRefObject<Game
     if (k.has("KeyA") || k.has("ArrowLeft")) view === "platform" ? (mz += 1) : (mx -= 1);
     if (k.has("KeyD") || k.has("ArrowRight")) view === "platform" ? (mz -= 1) : (mx += 1);
     if (view !== "platform") { if (k.has("KeyW") || k.has("ArrowUp")) mz -= 1; if (k.has("KeyS") || k.has("ArrowDown")) mz += 1; }
-    const sx = Number(k.has("stick") ? (k as unknown as { sx?: number }).sx ?? 0 : 0);
-    void sx;
     const stick = (keys as unknown as { stick?: { x: number; y: number } }).stick;
     if (stick) { if (view === "platform") mz -= stick.x; else { mx += stick.x; mz += stick.y; } }
     if (mx || mz) g.target = null;

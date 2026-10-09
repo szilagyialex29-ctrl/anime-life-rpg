@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+const DungeonGame = lazy(() => import("@/components/dungeon/dungeon-game"));
 import { Button } from "@/components/ui/button";
 import type { Stat } from "@/lib/game-data";
 import { GATES, SKILLS, keysAvailable, playerFighter, skillDamage, type Gate, type Skill, type Fighter } from "@/lib/dungeon";
@@ -14,6 +15,7 @@ export function DungeonGates({ level, stats, doneToday, day, onXp }: {
   const [st, setSt] = useState<Store>({ day, used: 0, shadows: [], cleared: [] });
   const [loaded, setLoaded] = useState(false);
   const [b, setB] = useState<Battle | null>(null);
+  const [live, setLive] = useState<Gate | null>(null);
 
   useEffect(() => {
     try {
@@ -25,6 +27,21 @@ export function DungeonGates({ level, stats, doneToday, day, onXp }: {
   useEffect(() => { if (loaded) localStorage.setItem(KEY, JSON.stringify(st)); }, [st, loaded]);
 
   const keys = keysAvailable(doneToday, st.used);
+
+  function enter3d(g: Gate) {
+    if (keys < 1) return;
+    setSt({ ...st, used: st.used + 1 });
+    setLive(g);
+  }
+  function finish3d(won: boolean) {
+    const g = live; if (!g) return;
+    if (won) {
+      onXp(g.xp);
+      setSt(s => ({ ...s, cleared: s.cleared.includes(g.rank) ? s.cleared : [...s.cleared, g.rank] }));
+      const me = playerFighter(level, stats);
+      setB({ gate: g, me, bossHp: 0, log: [`[RENDSZER] ${g.boss} legyőzve a 3D kapuban. +${g.xp} XP`], over: "win" });
+    }
+  }
 
   function enter(g: Gate) {
     if (keys < 1) return;
@@ -68,6 +85,11 @@ export function DungeonGates({ level, stats, doneToday, day, onXp }: {
         <h2 className="font-display text-lg text-primary">KAPUK</h2>
         <span className="font-display text-sm text-accent">🗝 {keys} kulcs</span>
       </div>
+      {live && (
+        <Suspense fallback={<div className="fixed inset-0 z-50 grid place-items-center bg-background font-display text-primary">[ RENDSZER ] Kapu töltése…</div>}>
+          <DungeonGame gate={live} level={level} stats={stats} shadowBonus={st.shadows.length * 2} onExit={() => setLive(null)} onFinish={finish3d} />
+        </Suspense>
+      )}
       {!b && (
         <>
           <p className="text-xs text-muted-foreground mb-3">Minden teljesített napi küldetés = 1 kapu-kulcs. Árnyékok: {st.shadows.length ? st.shadows.join(", ") : "nincs"} (+{st.shadows.length * 2} ATK)</p>
@@ -80,7 +102,10 @@ export function DungeonGates({ level, stats, doneToday, day, onXp }: {
                     <div className="font-display text-sm">{g.rank}-rang · {g.boss} {st.cleared.includes(g.rank) && "✓"}</div>
                     <div className="text-xs text-muted-foreground">HP {g.hp} · ATK {g.atk} · +{g.xp} XP{locked && ` · lvl ${g.minLevel}+`}</div>
                   </div>
-                  <Button size="sm" disabled={locked || keys < 1} onClick={() => enter(g)}>Belépés</Button>
+                  <div className="flex gap-1">
+                    <Button size="sm" disabled={locked || keys < 1} onClick={() => enter3d(g)}>3D Belépés</Button>
+                    <Button size="sm" variant="secondary" disabled={locked || keys < 1} onClick={() => enter(g)}>Gyors</Button>
+                  </div>
                 </li>
               );
             })}
