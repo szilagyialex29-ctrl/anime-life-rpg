@@ -36,7 +36,7 @@ function stoneTexture(dark: string, light: string) {
   return t;
 }
 
-function Character({ url, height, tint, get }: { url: string; height: number; tint?: string; get: () => { pos: THREE.Vector3; face: number; anim: Anim; hit?: number } }) {
+function Character({ url, height, tint, get }: { url: string; height: number; tint?: string | undefined; get: () => { pos: THREE.Vector3; face: number; anim: Anim; hit?: number | undefined } }) {
   const { scene, animations } = useGLTF(url);
   const root = useRef<THREE.Group>(null);
   const model = useMemo(() => {
@@ -153,7 +153,7 @@ function World({ game, view, keys, onTick }: { game: React.MutableRefObject<Game
     if (k.has("KeyA") || k.has("ArrowLeft")) view === "platform" ? (mz += 1) : (mx -= 1);
     if (k.has("KeyD") || k.has("ArrowRight")) view === "platform" ? (mz -= 1) : (mx += 1);
     if (view !== "platform") { if (k.has("KeyW") || k.has("ArrowUp")) mz -= 1; if (k.has("KeyS") || k.has("ArrowDown")) mz += 1; }
-    const stick = (keys as unknown as { stick?: { x: number; y: number } }).stick;
+    const stick = (keys as unknown as { stick?: { x: number; y: number } | undefined }).stick;
     if (stick) { if (view === "platform") mz -= stick.x; else { mx += stick.x; mz += stick.y; } }
     if (mx || mz) g.target = null;
     if (g.target) { const d = g.target.clone().sub(g.pos); d.y = 0; if (d.length() < 0.2) g.target = null; else { d.normalize(); mx = d.x; mz = d.z; } }
@@ -312,7 +312,7 @@ export default function DungeonGame({ gate, level, stats, shadowBonus, onExit, o
   const restart = () => { game.current = makeGame(gate, level, stats, shadowBonus); reported.current = false; setRun(r => r + 1); setPaused(false); };
   const onFloor = (e: ThreeEvent<PointerEvent>) => { if (view !== "moba") return; e.stopPropagation(); game.current.target = e.point.clone(); };
   const press = (k: string) => keys.current.add(k);
-  const stickRef = keys as unknown as { stick?: { x: number; y: number } };
+  const stickRef = keys as unknown as { stick?: { x: number; y: number } | undefined };
 
   return (
     <div className="fixed inset-0 z-50 bg-background select-none touch-none">
