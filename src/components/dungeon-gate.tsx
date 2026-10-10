@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 const DungeonGame = lazy(() => import("@/components/dungeon/dungeon-game"));
 import { Button } from "@/components/ui/button";
 import type { Stat } from "@/lib/game-data";
@@ -85,10 +86,10 @@ export function DungeonGates({ level, stats, doneToday, day, onXp }: {
         <h2 className="font-display text-lg text-primary">KAPUK</h2>
         <span className="font-display text-sm text-accent">🗝 {keys} kulcs</span>
       </div>
-      {live && (
+      {live && createPortal(
         <Suspense fallback={<div className="fixed inset-0 z-50 grid place-items-center bg-background font-display text-primary">[ RENDSZER ] Kapu töltése…</div>}>
           <DungeonGame gate={live} level={level} stats={stats} shadowBonus={st.shadows.length * 2} onExit={() => setLive(null)} onFinish={finish3d} />
-        </Suspense>
+        </Suspense>, document.body
       )}
       {!b && (
         <>
