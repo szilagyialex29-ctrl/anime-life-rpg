@@ -23,6 +23,8 @@ export function JinwooPlayer({ get }: { get: () => PlayerState }) {
   const root = useRef<THREE.Group>(null);
   const prepared = useMemo(() => {
     const model = SkeletonUtils.clone(fbx) as THREE.Group;
+    const bindTransforms = new Map<THREE.Object3D, { p: THREE.Vector3; q: THREE.Quaternion; s: THREE.Vector3 }>();
+    model.traverse(o => bindTransforms.set(o, { p: o.position.clone(), q: o.quaternion.clone(), s: o.scale.clone() }));
     const original = fbx.animations[0];
     if (!original) throw new Error("Jinwoo támadása hiányzik.");
     const combo = original.clone(); combo.name = "jinwoo-combo";
@@ -40,11 +42,23 @@ export function JinwooPlayer({ get }: { get: () => PlayerState }) {
     const target = targets.find(m => /Body0/.test(m.name)); const sourceMesh = sources[0]; const sourceClip = walking.animations[0];
     let walk: THREE.AnimationClip | null = null;
     if (target && sourceMesh && sourceClip) {
+      model.updateWorldMatrix(true, true); source.updateWorldMatrix(true, true);
       walk = SkeletonUtils.retargetClip(target, sourceMesh, sourceClip, { names: BONE_MAP, hip: "mixamorigHips", fps: 24, preservePosition: true });
       walk.name = "jinwoo-walk";
       walk.tracks = walk.tracks.filter(t => !t.name.endsWith(".position"));
       walk.tracks.forEach(t => { t.name = t.name.replace(/^\.bones\[([^\]]+)\]/, "$1"); });
     }
+    bindTransforms.forEach((t, o) => { o.position.copy(t.p); o.quaternion.copy(t.q); o.scale.copy(t.s); });
+    // FBX contains one skeleton per mesh with duplicate names. Address every
+    // matching bone by UUID instead of silently animating only the first rig.
+    const bindAll = (clip: THREE.AnimationClip) => {
+      clip.tracks = clip.tracks.flatMap(track => {
+        const dot = track.name.lastIndexOf("."); const name = track.name.slice(0, dot); const property = track.name.slice(dot);
+        const matches: THREE.Object3D[] = []; model.traverse(o => { if (o.name === name) matches.push(o); });
+        return matches.map(o => { const copy = track.clone(); copy.name = o.uuid + property; return copy; });
+      });
+    };
+    bindAll(combo); if (walk) bindAll(walk);
     const restMixer = new THREE.AnimationMixer(model);
     restMixer.clipAction(combo).play(); restMixer.update(0); restMixer.stopAllAction();
     const idle = new THREE.AnimationClip("jinwoo-idle", 1, combo.tracks.map(track => {
