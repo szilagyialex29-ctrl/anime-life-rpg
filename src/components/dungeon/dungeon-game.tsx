@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import type { Stat } from "@/lib/game-data";
 import { playerFighter, type Gate } from "@/lib/dungeon";
 import { IgrisBoss } from "./igris-boss";
+import { JinwooPlayer } from "./jinwoo-player";
 
 type View = "moba" | "action" | "platform";
 type Anim = "idle" | "walk" | "sprint" | "attack-melee-right" | "die" | "jump";
-type Enemy = { id: number; boss: boolean; pos: THREE.Vector3; hp: number; maxHp: number; atk: number; cd: number; hit: number; anim: Anim; face: number };
+type Enemy = { id: number; boss: boolean; pos: THREE.Vector3; hp: number; maxHp: number; atk: number; cd: number; hit: number; anim: Anim; face: number; attackId: number };
 type Game = {
   pos: THREE.Vector3; vy: number; face: number; hp: number; maxHp: number; mana: number; maxMana: number; atk: number;
-  cd: number; swing: number; target: THREE.Vector3 | null; enemies: Enemy[]; runes: { pos: THREE.Vector3; taken: boolean }[];
+  cd: number; swing: number; attackId: number; target: THREE.Vector3 | null; enemies: Enemy[]; runes: { pos: THREE.Vector3; taken: boolean }[];
   over: null | "win" | "lose"; log: string; blast: number;
 };
 type Hud = { hp: number; maxHp: number; mana: number; maxMana: number; runes: number; guards: number; bossHp: number; bossMax: number; shield: boolean; log: string; over: Game["over"] };
@@ -192,11 +193,11 @@ function World({ game, view, keys, onTick }: { game: React.MutableRefObject<Game
       return any;
     };
     if ((k.has("KeyF") || k.has("attack")) && g.cd <= 0) {
-      k.delete("attack"); g.cd = 0.45; g.swing = 0.35;
+      k.delete("attack"); g.cd = 0.45; g.swing = 0.35; g.attackId++;
       hitAround(2.2, Math.round(g.atk * (0.85 + Math.random() * 0.3)), true);
     }
     if ((k.has("KeyQ") || k.has("skill")) && g.mana >= 15 && g.blast < -0.6) {
-      k.delete("skill"); k.delete("KeyQ"); g.mana -= 15; g.blast = 0.5; g.swing = 0.35;
+      k.delete("skill"); k.delete("KeyQ"); g.mana -= 15; g.blast = 0.5; g.swing = 0.35; g.attackId++;
       hitAround(4.2, Math.round(g.atk * 2), false);
     }
 
@@ -218,7 +219,7 @@ function World({ game, view, keys, onTick }: { game: React.MutableRefObject<Game
       } else if (dist <= reach * 0.8 + 0.4) {
         e.face = Math.atan2(d.x, d.z);
         if (e.cd <= 0) {
-          e.cd = e.boss ? 1.3 : 1.1; e.anim = "attack-melee-right";
+          e.cd = e.boss ? 1.3 : 1.1; e.anim = "attack-melee-right"; e.attackId++;
           if (dist < reach + 0.3 && g.pos.y < 1) { g.hp = Math.max(0, g.hp - e.atk); if (g.hp === 0) { g.over = "lose"; playerAnim.current = "die"; } }
         } else if (e.cd < 0.6) e.anim = "idle";
       } else e.anim = "idle";
@@ -245,12 +246,12 @@ function World({ game, view, keys, onTick }: { game: React.MutableRefObject<Game
   const g = game.current;
   return (
     <>
-      <Character url="/models/dungeon-hero.glb" height={1.7} tint="#1d4ed8" get={() => ({ pos: g.pos, face: g.face, anim: playerAnim.current })} />
+      <JinwooPlayer get={() => ({ pos: g.pos, face: g.face, anim: playerAnim.current, attackId: g.attackId, paused: keys.current.has("paused") })} />
       {/* player aura */}
       <AuraRing get={() => g.pos} />
       <mesh ref={fx} rotation-x={-Math.PI / 2} visible={false}><ringGeometry args={[0.4, 0.5, 48]} /><meshBasicMaterial color="#60a5fa" transparent opacity={0.8} /></mesh>
       {g.enemies.map(e => e.boss
-        ? <IgrisBoss key={e.id} height={3.4} tint="#5b0f0f" get={() => e} />
+        ? <IgrisBoss key={e.id} height={3.4} tint="#5b0f0f" get={() => ({ ...e, paused: keys.current.has("paused") })} />
         : <Character key={e.id} url="/models/dungeon-orc.glb" height={1.6} get={() => e} />)}
       <mesh ref={shield}><icosahedronGeometry args={[2.3, 1]} /><meshBasicMaterial color="#a855f7" wireframe transparent opacity={0.5} /></mesh>
       {g.runes.map((r, i) => <Rune key={i} get={() => r} />)}
@@ -269,12 +270,12 @@ function AuraRing({ get }: { get: () => THREE.Vector3 }) {
 function makeGame(gate: Gate, level: number, stats: Record<Stat, number>, shadowBonus: number): Game {
   const f = playerFighter(level, stats);
   let id = 0;
-  const guard = (x: number, z: number): Enemy => ({ id: id++, boss: false, pos: new THREE.Vector3(x, 0, z), hp: Math.round(gate.hp * 0.4), maxHp: Math.round(gate.hp * 0.4), atk: Math.max(3, Math.round(gate.atk * 0.45)), cd: 1, hit: 0, anim: "idle", face: 0 });
+  const guard = (x: number, z: number): Enemy => ({ id: id++, boss: false, pos: new THREE.Vector3(x, 0, z), hp: Math.round(gate.hp * 0.4), maxHp: Math.round(gate.hp * 0.4), atk: Math.max(3, Math.round(gate.atk * 0.45)), cd: 1, hit: 0, anim: "idle", face: 0, attackId: 0 });
   return {
     pos: new THREE.Vector3(0, 0, 0), vy: 0, face: Math.PI, hp: f.maxHp, maxHp: f.maxHp, mana: f.mana, maxMana: f.mana, atk: f.atk + shadowBonus,
-    cd: 0, swing: 0, blast: 0, target: null, over: null, log: "[RENDSZER] Kapu megnyílt. Gyűjtsd be a 3 rúnát és győzd le az őröket.",
+    cd: 0, swing: 0, attackId: 0, blast: 0, target: null, over: null, log: "[RENDSZER] Kapu megnyílt. Gyűjtsd be a 3 rúnát és győzd le az őröket.",
     enemies: [guard(2, -10), guard(-2, -19), guard(1, -28),
-      { id: id++, boss: true, pos: new THREE.Vector3(0, 0, -40), hp: gate.hp * 3, maxHp: gate.hp * 3, atk: gate.atk, cd: 1.5, hit: 0, anim: "idle", face: 0 }],
+      { id: id++, boss: true, pos: new THREE.Vector3(0, 0, -40), hp: gate.hp * 3, maxHp: gate.hp * 3, atk: gate.atk, cd: 1.5, hit: 0, anim: "idle", face: 0, attackId: 0 }],
     runes: [new THREE.Vector3(-3.5, 1.3, -14), new THREE.Vector3(3.5, 1.3, -24), new THREE.Vector3(-4.5, 0, -32)].map(pos => ({ pos, taken: false })),
   };
 }
@@ -409,5 +410,4 @@ function TouchStick({ onMove }: { onMove: (v: { x: number; y: number } | null) =
   );
 }
 
-useGLTF.preload("/models/dungeon-hero.glb");
 useGLTF.preload("/models/dungeon-orc.glb");

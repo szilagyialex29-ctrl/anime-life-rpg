@@ -14,3 +14,5 @@
 - Mentor advice is a one-shot public CSRF-protected server function, not a conversation; inputs are caller-supplied and no player history is stored server-side.
 - Call Lovable AI through request-local Responses helpers on the server; persist terminal credit/access blocks in a service-only guard table to prevent repeated blocked spending.
 - Use generated class-specific avatar tier portraits and named mentor portraits to keep cosmetics and mentor identity visually distinct.
+- Load uploaded fighter assets through saved asset pointers; isolate normalization from animated roots and retarget locomotion through explicit bone maps so different skeletons remain compatible.
+- Use incrementing attack IDs for one-shot fighter clips so consecutive attacks restart even when their animation state does not change.
