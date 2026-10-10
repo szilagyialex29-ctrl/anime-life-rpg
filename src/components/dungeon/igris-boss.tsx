@@ -97,7 +97,7 @@ export function IgrisBoss({ height, tint, get }: { height: number; tint?: string
     if (index > 0) { action.setLoop(THREE.LoopOnce, 1); action.clampWhenFinished = true; }
     return action;
   }), [fbx, slash, kick, spin, mixer]);
-  useEffect(() => () => { mixer.stopAllAction(); mixer.uncacheRoot(model); }, [mixer, model]);
+  useEffect(() => () => { mixer.stopAllAction(); }, [mixer]);
   const dead = useRef(0); const lastAttack = useRef(-1); const active = useRef<THREE.AnimationAction | null>(null); const remaining = useRef(0);
 
   useFrame((_, raw) => {

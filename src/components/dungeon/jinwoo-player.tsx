@@ -62,7 +62,7 @@ export function JinwooPlayer({ get }: { get: () => PlayerState }) {
   const mixer = useMemo(() => new THREE.AnimationMixer(prepared.model), [prepared]);
   const actions = useMemo(() => Object.fromEntries(prepared.clips.map(c => [c.name, mixer.clipAction(c)])), [prepared, mixer]);
   const active = useRef<THREE.AnimationAction | null>(null); const lastAttack = useRef(-1); const remaining = useRef(0); const dead = useRef(0);
-  useEffect(() => () => { mixer.stopAllAction(); mixer.uncacheRoot(prepared.model); }, [mixer, prepared]);
+  useEffect(() => () => { mixer.stopAllAction(); }, [mixer]);
   useFrame((_, raw) => {
     const g = root.current; if (!g) return;
     const s = get(); const dt = Math.min(raw, 0.05);
