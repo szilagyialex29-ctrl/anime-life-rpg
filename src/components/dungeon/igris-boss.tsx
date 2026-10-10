@@ -3,10 +3,13 @@ import { useFrame } from "@react-three/fiber";
 import { useFBX } from "@react-three/drei";
 import { SkeletonUtils } from "three-stdlib";
 import * as THREE from "three";
+import slashAsset from "@/assets/igris-slash.asset.json";
+import kickAsset from "@/assets/igris-kick.asset.json";
+import spinAsset from "@/assets/igris-spin.asset.json";
 
 export const IGRIS_URL = "/models/igris.fbx";
 
-type State = { pos: THREE.Vector3; face: number; anim: string; hit?: number | undefined; hp?: number };
+type State = { pos: THREE.Vector3; face: number; anim: string; hit?: number | undefined; hp?: number; attackId?: number; paused?: boolean };
 
 /** Splits the loose sword (separate parts standing beside the body in bind pose) off the skinned mesh. */
 function splitSword(mesh: THREE.SkinnedMesh) {
@@ -14,7 +17,7 @@ function splitSword(mesh: THREE.SkinnedMesh) {
   const p = g.getAttribute("position") as THREE.BufferAttribute;
   const n = p.count;
   const par: number[] = Array.from({ length: n }, (_, i) => i);
-  const find = (i: number) => { while (par[i] !== i) { par[i] = par[par[i]!]!; i = par[i]!; } return i; };
+  const find = (start: number) => { let i = start; while (true) { const parent = par[i]; if (parent === undefined || parent === i) return i; const grand = par[parent]; if (grand === undefined) return parent; par[i] = grand; i = grand; } };
   const seen = new Map<string, number>();
   for (let i = 0; i < n; i++) {
     const k = `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
@@ -80,24 +83,47 @@ function buildIgris(src: THREE.Group, height: number, tint?: string) {
 
 export function IgrisBoss({ height, tint, get }: { height: number; tint?: string; get: () => State }) {
   const fbx = useFBX(IGRIS_URL);
+  const slash = useFBX(slashAsset.url);
+  const kick = useFBX(kickAsset.url);
+  const spin = useFBX(spinAsset.url);
   const model = useMemo(() => buildIgris(fbx, height, tint), [fbx, height, tint]);
   const root = useRef<THREE.Group>(null);
   const mixer = useMemo(() => new THREE.AnimationMixer(model), [model]);
-  const walk = useMemo(() => { const c = fbx.animations[0]; if (!c) return null; const clip = c.clone(); clip.tracks = clip.tracks.filter(t => !/Hips\.position/.test(t.name)); return mixer.clipAction(clip); }, [fbx, mixer]);
-  useEffect(() => { walk?.play(); return () => { mixer.stopAllAction(); }; }, [walk, mixer]);
-  const lunge = useRef(0); const dead = useRef(0); const last = useRef("");
+  const actions = useMemo(() => [fbx, slash, kick, spin].map((source, index) => {
+    const original = source.animations[0]; if (!original) return null;
+    const clip = original.clone(); clip.name = `igris-${index}`;
+    clip.tracks = clip.tracks.filter(t => !/Hips\.position/.test(t.name));
+    const action = mixer.clipAction(clip);
+    if (index > 0) { action.setLoop(THREE.LoopOnce, 1); action.clampWhenFinished = true; }
+    return action;
+  }), [fbx, slash, kick, spin, mixer]);
+  useEffect(() => () => { mixer.stopAllAction(); mixer.uncacheRoot(model); }, [mixer, model]);
+  const dead = useRef(0); const lastAttack = useRef(-1); const active = useRef<THREE.AnimationAction | null>(null); const remaining = useRef(0);
 
   useFrame((_, raw) => {
     const dt = Math.min(raw, 0.05); const s = get(); const g = root.current; if (!g) return;
-    if (s.anim !== last.current && s.anim === "attack-melee-right") lunge.current = 1;
-    last.current = s.anim;
-    lunge.current = Math.max(0, lunge.current - dt * 2.2);
-    if (s.anim === "die") dead.current = Math.min(1, dead.current + dt * 1.5); else dead.current = 0;
-    if (walk) walk.timeScale = s.anim === "walk" ? 1 : s.anim === "die" ? 0 : 0.25;
-    mixer.update(dt);
     g.position.copy(s.pos); g.rotation.y = s.face;
-    const swing = Math.sin(lunge.current * Math.PI);
-    g.rotation.x = swing * 0.35 - dead.current * 1.45;
+    if (s.paused) return;
+    remaining.current = Math.max(0, remaining.current - dt);
+    const attackId = s.attackId ?? 0;
+    if (s.anim === "attack-melee-right" && attackId !== lastAttack.current) {
+      lastAttack.current = attackId;
+      const next = actions[1 + ((attackId - 1 + 3) % 3)];
+      if (next) {
+        active.current?.fadeOut(0.1);
+        next.reset().setEffectiveTimeScale(next.getClip().duration / 1.1).fadeIn(0.1).play();
+        active.current = next; remaining.current = 1.1;
+      }
+    }
+    if (remaining.current === 0 && active.current !== actions[0]) {
+      active.current?.fadeOut(0.15); const walk = actions[0];
+      walk?.reset().fadeIn(0.15).play(); active.current = walk ?? null;
+    }
+    if (s.anim === "die") dead.current = Math.min(1, dead.current + dt * 1.5); else dead.current = 0;
+    const walk = actions[0]; if (walk) walk.timeScale = s.anim === "walk" ? 1 : 0;
+    mixer.timeScale = s.anim === "die" ? 0 : 1;
+    mixer.update(dt);
+    g.rotation.x = -dead.current * 1.45;
     const flash = s.hit && s.hit > 0 ? 1 + s.hit * 0.08 : 1; g.scale.setScalar(flash);
   });
   return <group ref={root}><primitive object={model} /></group>;
