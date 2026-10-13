@@ -1,4 +1,6 @@
 # Feladatok
+- [ ] Bejárható gótikus trónterem, WASD és egérnézet, fal- és oszlopütközés.
+- [ ] Igris cserélhető Mixamo-támadásának előkészítése és tróntermi ellenőrzés.
 - [x] Feltöltött kardos mozdulatok elosztása Igris és a játékos között, csontváz-kompatibilitás ellenőrzése és harci lejátszás.
 - [ ] Szintekhez kötött felszerelések és aurák, avatárra alkalmazás.
 - [ ] Mind a hat mentor saját névvel jelölt képe.

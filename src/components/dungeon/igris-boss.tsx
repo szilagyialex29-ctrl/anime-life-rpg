@@ -6,6 +6,7 @@ import * as THREE from "three";
 import slashAsset from "@/assets/igris-slash.asset.json";
 import kickAsset from "@/assets/igris-kick.asset.json";
 import spinAsset from "@/assets/igris-spin.asset.json";
+import { bindIgrisAttack } from "@/lib/igris-animation";
 
 export const IGRIS_URL = "/models/igris.fbx";
 
@@ -81,7 +82,7 @@ function buildIgris(src: THREE.Group, height: number, tint?: string) {
   return root;
 }
 
-export function IgrisBoss({ height, tint, get }: { height: number; tint?: string; get: () => State }) {
+export function IgrisBoss({ height, tint, get, attackClip }: { height: number; tint?: string; get: () => State; attackClip?: THREE.AnimationClip | null }) {
   const fbx = useFBX(IGRIS_URL);
   const slash = useFBX(slashAsset.url);
   const kick = useFBX(kickAsset.url);
@@ -90,13 +91,13 @@ export function IgrisBoss({ height, tint, get }: { height: number; tint?: string
   const root = useRef<THREE.Group>(null);
   const mixer = useMemo(() => new THREE.AnimationMixer(model), [model]);
   const actions = useMemo(() => [fbx, slash, kick, spin].map((source, index) => {
-    const original = source.animations[0]; if (!original) return null;
-    const clip = original.clone(); clip.name = `igris-${index}`;
+    const original = index === 1 && attackClip ? attackClip : source.animations[0]; if (!original) return null;
+    const clip = index === 1 && attackClip ? bindIgrisAttack(original, model) : original.clone(); clip.name = `igris-${index}`;
     clip.tracks = clip.tracks.filter(t => !/Hips\.position/.test(t.name));
     const action = mixer.clipAction(clip);
     if (index > 0) { action.setLoop(THREE.LoopOnce, 1); action.clampWhenFinished = true; }
     return action;
-  }), [fbx, slash, kick, spin, mixer]);
+  }), [fbx, slash, kick, spin, mixer, attackClip, model]);
   useEffect(() => () => { mixer.stopAllAction(); }, [mixer]);
   const dead = useRef(0); const lastAttack = useRef(-1); const active = useRef<THREE.AnimationAction | null>(null); const remaining = useRef(0);
 
@@ -108,7 +109,7 @@ export function IgrisBoss({ height, tint, get }: { height: number; tint?: string
     const attackId = s.attackId ?? 0;
     if (s.anim === "attack-melee-right" && attackId !== lastAttack.current) {
       lastAttack.current = attackId;
-      const next = actions[1 + ((attackId - 1 + 3) % 3)];
+      const next = actions[attackClip ? 1 : 1 + ((attackId - 1 + 3) % 3)];
       if (next) {
         active.current?.fadeOut(0.1);
         next.reset().setEffectiveTimeScale(next.getClip().duration / 1.1).fadeIn(0.1).play();
