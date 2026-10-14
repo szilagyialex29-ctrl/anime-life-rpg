@@ -101,8 +101,8 @@ export function HunterPanel({ rpg, setRpg, level, life, onXp }: Props) {
     start(f.rank, DUNGEON_STAGES[stage] ?? "boss", { kind: "dungeon", stage });
   }
 
-  const rest = () => { if (rpg.gold < innCost) return toast.error("Nincs elég aranyad."); setRpg(r => ({ ...r, gold: r.gold - innCost, hp: null, mana: null })); toast.success("Kipihented magad. HP és MANA tele."); };
-  const buyPotion = () => { if (rpg.gold < 25) return toast.error("Nincs elég aranyad."); setRpg(r => ({ ...r, gold: r.gold - 25, potions: r.potions + 1 })); };
+  const rest = () => { if (rpg.gold < innCost) { toast.error("Nincs elég aranyad."); return; } setRpg(r => ({ ...r, gold: r.gold - innCost, hp: null, mana: null })); toast.success("Kipihented magad. HP és MANA tele."); };
+  const buyPotion = () => { if (rpg.gold < 25) { toast.error("Nincs elég aranyad."); return; } setRpg(r => ({ ...r, gold: r.gold - 25, potions: r.potions + 1 })); };
   const addPoint = (k: keyof Points) => free > 0 && setRpg(r => ({ ...r, points: { ...r.points, [k]: r.points[k] + 1 } }));
   const reward = (xp: number, gold: number, patch: (r: Rpg) => Partial<Rpg>, msg: string) => { onXp(xp); setRpg(r => ({ ...r, gold: r.gold + gold, ...patch(r) })); toast.success(`${msg} +${xp} XP${gold ? ` · +${gold} arany` : ""}`); };
   const upgrade = (it: Item) => {
