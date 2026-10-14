@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { HunterPanel } from "@/components/hunter-panel";
+import { newRpg, type Rpg } from "@/lib/rpg";
 import { Button } from "@/components/ui/button";
 import { Equipment } from "@/components/equipment";
 import { MentorAdvice } from "@/components/mentor-advice";
 import { DungeonGates } from "@/components/dungeon-gate";
 import { CLASSES, MENTORS, QUESTS, PENALTY, DARES, type Stat, type ClassId, type MentorId } from "@/lib/game-data";
-import { levelOf, rank, resolveEquipment, resolveAura, type EquipmentId, type AuraId } from "@/lib/progression";
+import { levelOf, resolveEquipment, resolveAura, type EquipmentId, type AuraId } from "@/lib/progression";
 import { AVATAR_IMAGES, MENTOR_IMAGES } from "@/lib/avatar-assets";
 
 export const Route = createFileRoute("/")({
@@ -37,6 +40,7 @@ type State = {
   done: string[];
   penaltyUntil: number | null;
   dare: string | null;
+  rpg?: Rpg;
 };
 const initial: State = {
   equipment: "starter", aura: "none", cls: null, mentor: null, name: "", xp: 0, day: today(), done: [], penaltyUntil: null, dare: null,
@@ -62,10 +66,24 @@ function Index() {
       if (failed && !st.penaltyUntil) st = { ...st, penaltyUntil: Date.now() + 864e5, dare: pick(DARES) };
     }
     if (st.penaltyUntil && Date.now() > st.penaltyUntil) st = { ...st, penaltyUntil: null, dare: null };
+    const rpg = { ...newRpg(today()), ...st.rpg };
+    st = { ...st, rpg: rpg.day === today() ? rpg : { ...rpg, day: today(), dailyKills: 0, dailyElite: 0, claimedDaily: [] } };
     setS(st); setLoaded(true);
     setMsg(st.penaltyUntil ? "[FIGYELMEZTETÉS] Büntetési zóna aktív." : pick(MENTORS[st.mentor ?? "jinwoo"].idle));
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem("glowup", JSON.stringify(s)); }, [s, loaded]);
+
+  const curLevel = levelOf(s.xp).level;
+  const prevLevel = useRef<number | null>(null);
+  const [burst, setBurst] = useState<number | null>(null);
+  useEffect(() => {
+    if (!loaded) return;
+    if (prevLevel.current !== null && curLevel > prevLevel.current) {
+      setBurst(curLevel); toast.success(`[SZINTLÉPÉS] Szint ${curLevel}! +3 képességpont, több HP és ATK.`);
+      const t = setTimeout(() => setBurst(null), 2200); prevLevel.current = curLevel; return () => clearTimeout(t);
+    }
+    prevLevel.current = curLevel;
+  }, [curLevel, loaded]);
 
   if (!loaded) return null;
 
@@ -106,7 +124,7 @@ function Index() {
         <div className="system-window p-4 mt-6 flex flex-col md:flex-row gap-3">
           <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder="Játékosnév"
             className="flex-1 bg-input/20 border border-input px-3 py-2 outline-none focus:border-primary" />
-          <Button variant="ghost" disabled={!nm.trim()} onClick={() => { setS({ ...initial, cls: pick1, mentor: pickM, name: nm.trim() }); setMsg(pick(MENTORS[pickM].idle)); }}
+          <Button variant="ghost" disabled={!nm.trim()} onClick={() => { setS({ ...initial, rpg: newRpg(today()), cls: pick1, mentor: pickM, name: nm.trim() }); setMsg(pick(MENTORS[pickM].idle)); }}
             className="font-display bg-primary text-primary-foreground px-6 py-2 disabled:opacity-40">ÉBREDÉS</Button>
         </div>
       </main>
@@ -120,6 +138,8 @@ function Index() {
   const list = inPenalty ? PENALTY : QUESTS;
   const equipment = resolveEquipment(s.equipment, lv.level);
   const aura = resolveAura(s.aura, lv.level);
+  const rpg = s.rpg ?? newRpg(s.day);
+  const setRpg = (f: (r: Rpg) => Rpg) => setS(p => ({ ...p, rpg: f(p.rpg ?? newRpg(p.day)) }));
 
   function complete(q: { id: string; stat: Stat; xp: number }) {
     if (s.done.includes(q.id)) return;
@@ -137,10 +157,11 @@ function Index() {
 
   return (
     <main className="min-h-screen px-4 py-8 max-w-6xl mx-auto grid lg:grid-cols-[340px_1fr] gap-6">
+      {burst && <div className="fixed inset-0 z-50 grid place-items-center pointer-events-none"><div className="system-window px-10 py-6 text-center animate-in zoom-in fade-in duration-500"><p className="font-display text-xs text-primary">[ RENDSZER ]</p><p className="font-display text-4xl glow-text">SZINTLÉPÉS</p><p className="text-accent font-display text-2xl">Lv {burst}</p></div></div>}
       <aside className="space-y-4">
         <div className={`system-window overflow-hidden relative avatar-aura-${aura.id}`}>
           <img src={AVATAR_IMAGES[s.cls][equipment.tier]} alt={c.name} width={512} height={512} className="w-full aspect-square object-cover" />
-          <div className="absolute top-3 right-3 font-display text-4xl glow-text">{rank(lv.level)}</div>
+          <div className="absolute top-3 right-3 font-display text-4xl glow-text">{rpg.rank}</div>
           <div className="p-4">
             <p className="font-display text-xs text-primary">{c.name.toUpperCase()}</p>
             <h1 className="font-display text-2xl">{s.name}</h1>
@@ -220,6 +241,7 @@ function Index() {
             <p className="text-xs text-muted-foreground mt-4">Figyelem: ha éjfélig nem teljesíted mindet, a Rendszer büntetési zónába helyez.</p>
           )}
         </div>
+        <HunterPanel rpg={rpg} setRpg={setRpg} level={lv.level} life={s.stats} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
         <DungeonGates level={lv.level} stats={s.stats} day={s.day} doneToday={s.done.filter(id => !id.startsWith("p")).length} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
         <Button asChild variant="secondary" className="w-full"><Link to="/throne-room">Gótikus trónterem · Igris →</Link></Button>
         <MentorAdvice key={s.mentor ?? "jinwoo"} player={{ mentor: s.mentor ?? "jinwoo", cls: s.cls, name: s.name.slice(0,100), xp: s.xp, stats: s.stats, done: s.done, inPenalty }} />
