@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Equipment } from "@/components/equipment";
@@ -72,6 +72,7 @@ function Index() {
   if (!s.cls) {
     return (
       <main className="min-h-screen px-4 py-10 max-w-5xl mx-auto">
+        <div className="flex justify-end mb-4"><Button asChild variant="secondary"><Link to="/throne-room">Gótikus trónterem →</Link></Button></div>
         <div className="system-window p-6 text-center mb-8">
           <p className="font-display text-xs text-primary">[ RENDSZER ]</p>
           <h1 className="font-display text-3xl md:text-4xl glow-text mt-2">Játékosnak választottak.</h1>
@@ -220,6 +221,7 @@ function Index() {
           )}
         </div>
         <DungeonGates level={lv.level} stats={s.stats} day={s.day} doneToday={s.done.filter(id => !id.startsWith("p")).length} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
+        <Button asChild variant="secondary" className="w-full"><Link to="/throne-room">Gótikus trónterem · Igris →</Link></Button>
         <MentorAdvice key={s.mentor ?? "jinwoo"} player={{ mentor: s.mentor ?? "jinwoo", cls: s.cls, name: s.name.slice(0,100), xp: s.xp, stats: s.stats, done: s.done, inPenalty }} />
       </section>
     </main>

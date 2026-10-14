@@ -62,6 +62,15 @@
 }
 
 :root {
+  --hall-stone: #747d89;
+  --hall-wall: #111c32;
+  --hall-trim: #3e4656;
+  --hall-metal: #847562;
+  --hall-warm: #ffd39a;
+  --hall-cold: #b6d7ff;
+  --hall-glass: #7196bf;
+  --hall-void: #0a0e17;
+  --hall-runner: #322735;
   --radius: 0.25rem;
   --background: oklch(0.14 0.04 265);
   --foreground: oklch(0.95 0.02 240);
