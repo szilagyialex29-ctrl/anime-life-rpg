@@ -17,3 +17,5 @@
 - Load uploaded fighter assets through saved asset pointers; isolate normalization from animated roots and retarget locomotion through explicit bone maps so different skeletons remain compatible.
 - Use incrementing attack IDs for one-shot fighter clips so consecutive attacks restart even when their animation state does not change.
 - Bind uploaded FBX animation tracks to cloned-node UUIDs across duplicate skeleton names and restore bind transforms after retargeting to prevent mesh deformation.
+- Keep the throne room on its own client-only route so the existing dungeon progression remains unchanged; share column positions between architecture and substepped per-axis collision.
+- Validate locally imported Igris FBX attacks against the loaded Mixamo rig and bind only quaternion tracks to cloned bone UUIDs so imported root motion cannot move or resize the boss.
