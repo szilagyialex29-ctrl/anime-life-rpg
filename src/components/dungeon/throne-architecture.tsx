@@ -98,7 +98,14 @@ function buildArchitecture() {
     const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(x, 7.5, z), new THREE.Vector3(x * 0.55, 8.5, -1 + (z + 1) * 0.55), new THREE.Vector3(0, 9.2, -1)]);
     metal.push(new THREE.TubeGeometry(curve, 16, 0.035, 5, false));
   }
-  const merge = (items: THREE.BufferGeometry[]) => { const result = mergeGeometries(items, false); items.forEach(g => g.dispose()); if (!result) throw new Error("Hall geometry failed"); return result; };
+  const merge = (items: THREE.BufferGeometry[]) => {
+    // Extrusions are non-indexed; all inputs must use the same representation.
+    const flat = items.map(g => g.index ? g.toNonIndexed() : g);
+    const result = mergeGeometries(flat, false);
+    new Set([...items, ...flat]).forEach(g => g.dispose());
+    if (!result) throw new Error("Hall geometry failed");
+    return result;
+  };
   return { stone: merge(stone), trim: merge(trim), metal: merge(metal), windows };
 }
 
