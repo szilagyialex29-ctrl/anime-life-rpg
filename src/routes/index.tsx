@@ -77,12 +77,13 @@ function Index() {
   const prevLevel = useRef<number | null>(null);
   const [burst, setBurst] = useState<number | null>(null);
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded) return undefined;
     if (prevLevel.current !== null && curLevel > prevLevel.current) {
       setBurst(curLevel); toast.success(`[SZINTLÉPÉS] Szint ${curLevel}! +3 képességpont, több HP és ATK.`);
       const t = setTimeout(() => setBurst(null), 2200); prevLevel.current = curLevel; return () => clearTimeout(t);
     }
     prevLevel.current = curLevel;
+    return undefined;
   }, [curLevel, loaded]);
 
   if (!loaded) return null;

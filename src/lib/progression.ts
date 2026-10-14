@@ -1,7 +1,9 @@
+export const MAX_LEVEL = 100;
 export const xpFor = (lvl: number) => 100 + lvl * 50;
 export function levelOf(xp: number) {
   let l = 1, r = xp;
-  while (r >= xpFor(l)) { r -= xpFor(l); l++; }
+  while (l < MAX_LEVEL && r >= xpFor(l)) { r -= xpFor(l); l++; }
+  if (l === MAX_LEVEL) return { level: l, cur: xpFor(l), need: xpFor(l) };
   return { level: l, cur: r, need: xpFor(l) };
 }
 export const rank = (l: number) => (l >= 30 ? "S" : l >= 20 ? "A" : l >= 12 ? "B" : l >= 7 ? "C" : l >= 3 ? "D" : "E");

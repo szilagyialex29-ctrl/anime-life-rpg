@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { levelOf, MAX_LEVEL } from "@/lib/game-data";
+import { levelOf, MAX_LEVEL } from "@/lib/progression";
 import { canPromote, combatStats, damage, freePoints, makeMonster, newRpg, upgradeCost, itemPower, type Item } from "@/lib/rpg";
 
 const life = { STR: 0, CHA: 0, INT: 0, HP: 0, MANA: 0 };
