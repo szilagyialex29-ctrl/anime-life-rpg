@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useRef, useState, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Html, Lightformer } from "@react-three/drei";
+import { Environment, Lightformer } from "@react-three/drei";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Crosshair, Pause, Play, RotateCcw, Sword, Upload, X, ArrowUp, ArrowDown } from "lucide-react";
 import * as THREE from "three";
@@ -102,12 +102,12 @@ export default function ThroneRoom() {
     finally { setBusy(false); if (upload.current) upload.current.value = ""; }
   }
   return <main className="fixed inset-0 bg-background text-foreground overflow-hidden">
-    {palette && <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 1.7, 12], fov: 65, near: 0.08, far: 85 }} gl={{ antialias: true }}>
+    {palette && <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 1.7, 12], fov: 65, near: 0.08, far: 85 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.65 }}>
       <color attach="background" args={[palette.void]} />
       <fog attach="fog" args={[palette.void, 32, 72]} />
       <ambientLight intensity={0.6} color={palette.cold} />
-      <Environment resolution={128}><Lightformer intensity={1.3} color={palette.cold} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[15, 35, 1]} /><Lightformer intensity={1} color={palette.warm} position={[0, 6, -18]} scale={[6, 5, 1]} /></Environment>
-      <Suspense fallback={<Html center><span className="bg-background/80 px-3 py-2 text-sm text-primary">Trónterem betöltése…</span></Html>}><ThroneArchitecture palette={palette} /></Suspense>
+      <Environment resolution={128} environmentIntensity={0.15}><Lightformer intensity={0.5} color={palette.cold} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[15, 35, 1]} /><Lightformer intensity={0.5} color={palette.warm} position={[0, 6, -18]} scale={[6, 5, 1]} /></Environment>
+      <Suspense fallback={null}><ThroneArchitecture palette={palette} /></Suspense>
       <Suspense fallback={null}><Boss input={input} clip={clip} onReady={model => { rig.current = model; }} /></Suspense>
       <Explorer input={input} report={(x, z) => setPosition({ x, z })} />
     </Canvas>}
@@ -116,7 +116,7 @@ export default function ThroneRoom() {
       <div className="flex gap-2 pointer-events-auto"><Button size="icon" variant="secondary" title="Igris animációja" aria-label="Igris animációja" onClick={() => setPanel(!panel)}><Sword className="size-4" /></Button><Button size="icon" variant="secondary" title="Vissza a bejárathoz" aria-label="Vissza a bejárathoz" onClick={() => { input.current.reset++; }}><RotateCcw className="size-4" /></Button><Button size="icon" variant="secondary" title={paused ? "Folytatás" : "Szünet"} aria-label={paused ? "Folytatás" : "Szünet"} onClick={togglePause}>{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</Button></div>
     </header>
     <Crosshair className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-4 text-foreground/40 pointer-events-none" />
-    {panel && <section className="absolute right-5 top-20 w-[min(320px,calc(100vw-40px))] bg-popover/95 border border-border p-4 rounded-md">
+    {panel && <section className="absolute right-5 top-32 sm:top-20 w-[min(320px,calc(100vw-40px))] bg-popover/95 border border-border p-4 rounded-md">
       <div className="flex justify-between items-center"><h2 className="font-display text-sm">IGRIS · TÁMADÁS</h2><Button size="icon" variant="ghost" aria-label="Bezárás" onClick={() => setPanel(false)}><X className="size-4" /></Button></div>
       <p className="text-sm text-muted-foreground break-all my-3">{filename}</p>
       <input ref={upload} type="file" accept=".fbx" aria-label="Mixamo támadásfájl" className="hidden" onChange={e => { const file = e.target.files?.[0]; if (file) void importAttack(file); }} />
