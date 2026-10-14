@@ -18,6 +18,7 @@ function Explorer({ input, report }: { input: RefObject<Input>; report: (x: numb
   const pos = useRef({ x: 0, z: 12 }); const lastReset = useRef(0); const timer = useRef(0);
   useEffect(() => {
     const canvas = gl.domElement;
+    (canvas as HTMLCanvasElement & { hallState?: unknown }).hallState = { camera, gl };
     const look = (e: MouseEvent) => {
       if (document.pointerLockElement !== canvas && e.buttons !== 1) return;
       if (!input.current.active || (e.target !== canvas && !document.pointerLockElement)) return;
