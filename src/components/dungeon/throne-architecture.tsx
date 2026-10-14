@@ -139,12 +139,12 @@ export function ThroneArchitecture({ palette: p }: { palette: HallPalette }) {
     <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, -2]} receiveShadow><planeGeometry args={[22, 38]} /><meshStandardMaterial map={maps.floor} color={p.stone} roughness={0.65} metalness={0.08} /></mesh>
     <mesh rotation-x={-Math.PI / 2} position={[0, 0.015, 1.9]}><planeGeometry args={[3.5, 27]} /><meshStandardMaterial color={p.runner} roughness={1} /></mesh>
     {[-1, 1].flatMap(side => geo.windows.map(z => <group key={`${side}-${z}`}>
-      <mesh geometry={glass} position={[side * 11.02, 0, z]} rotation-y={Math.PI / 2}><meshStandardMaterial color={p.glass} emissive={p.cold} emissiveIntensity={1.2} side={THREE.DoubleSide} roughness={0.3} /></mesh>
-      <pointLight position={[side * 9.2, 6, z]} color={p.cold} intensity={38} distance={17} decay={2} />
+      <mesh geometry={glass} position={[side * 11.02, 0, z]} rotation-y={Math.PI / 2}><meshStandardMaterial color={p.glass} emissive={p.cold} emissiveIntensity={0.4} side={THREE.DoubleSide} roughness={0.3} /></mesh>
+      <pointLight position={[side * 9.2, 6, z]} color={p.cold} intensity={24} distance={17} decay={2} />
     </group>))}
     {Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return <mesh key={i} position={[Math.cos(a) * 2.25, 7.92, -1 + Math.sin(a) * 2.25]}><capsuleGeometry args={[0.065, 0.22, 3, 6]} /><meshBasicMaterial color={p.warm} /></mesh>; })}
-    <pointLight position={[0, 7.4, -1]} color={p.warm} intensity={180} distance={30} decay={2} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} shadow-bias={-0.002} />
-    <pointLight position={[0, 5, -17]} color={p.warm} intensity={65} distance={14} />
+    <pointLight position={[0, 7.4, -1]} color={p.warm} intensity={100} distance={30} decay={2} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} shadow-bias={-0.002} />
+    <pointLight position={[0, 5, -17]} color={p.warm} intensity={38} distance={14} />
     <Throne />
   </>;
 }
