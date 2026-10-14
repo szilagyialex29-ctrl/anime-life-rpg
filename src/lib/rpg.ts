@@ -56,7 +56,7 @@ export const RARITIES: Record<Rarity, { name: string; mult: number; cls: string 
   common: { name: "Közönséges", mult: 1, cls: "text-muted-foreground" },
   rare: { name: "Ritka", mult: 1.5, cls: "text-primary" },
   epic: { name: "Epikus", mult: 2.2, cls: "text-accent" },
-  legendary: { name: "Legendás", mult: 3.2, cls: "text-warning" },
+  legendary: { name: "Legendás", mult: 3.2, cls: "text-accent font-bold" },
   mythic: { name: "Mítikus", mult: 4.5, cls: "text-destructive" },
 };
 export type Slot = "weapon" | "armor" | "accessory";
