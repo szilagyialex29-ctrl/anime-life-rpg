@@ -14,11 +14,10 @@ import { ThroneArchitecture, type HallPalette } from "./throne-architecture";
 type Input = { keys: Set<string>; yaw: number; pitch: number; active: boolean; reset: number; attackId: number };
 
 function Explorer({ input, report }: { input: RefObject<Input>; report: (x: number, z: number) => void }) {
-  const { camera, gl, scene } = useThree();
+  const { camera, gl } = useThree();
   const pos = useRef({ x: 0, z: 12 }); const lastReset = useRef(0); const timer = useRef(0);
   useEffect(() => {
     const canvas = gl.domElement;
-    (canvas as HTMLCanvasElement & { hallState?: unknown }).hallState = { camera, gl, scene };
     const look = (e: MouseEvent) => {
       if (document.pointerLockElement !== canvas && e.buttons !== 1) return;
       if (!input.current.active || (e.target !== canvas && !document.pointerLockElement)) return;
@@ -103,10 +102,10 @@ export default function ThroneRoom() {
     finally { setBusy(false); if (upload.current) upload.current.value = ""; }
   }
   return <main className="fixed inset-0 bg-background text-foreground overflow-hidden">
-    {palette && <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 1.7, 12], fov: 65, near: 0.08, far: 85 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.65 }}>
+    {palette && <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 1.7, 12], fov: 65, near: 0.08, far: 85 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.4 }}>
       <color attach="background" args={[palette.void]} />
       <fog attach="fog" args={[palette.void, 32, 72]} />
-      <ambientLight intensity={0.6} color={palette.cold} />
+      <ambientLight intensity={0.35} color={palette.cold} />
       <Environment resolution={128} environmentIntensity={0.15}><Lightformer intensity={0.5} color={palette.cold} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[15, 35, 1]} /><Lightformer intensity={0.5} color={palette.warm} position={[0, 6, -18]} scale={[6, 5, 1]} /></Environment>
       <Suspense fallback={null}><ThroneArchitecture palette={palette} /></Suspense>
       <Suspense fallback={null}><Boss input={input} clip={clip} onReady={model => { rig.current = model; }} /></Suspense>
