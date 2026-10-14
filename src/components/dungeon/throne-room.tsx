@@ -14,11 +14,11 @@ import { ThroneArchitecture, type HallPalette } from "./throne-architecture";
 type Input = { keys: Set<string>; yaw: number; pitch: number; active: boolean; reset: number; attackId: number };
 
 function Explorer({ input, report }: { input: RefObject<Input>; report: (x: number, z: number) => void }) {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
   const pos = useRef({ x: 0, z: 12 }); const lastReset = useRef(0); const timer = useRef(0);
   useEffect(() => {
     const canvas = gl.domElement;
-    (canvas as HTMLCanvasElement & { hallState?: unknown }).hallState = { camera, gl };
+    (canvas as HTMLCanvasElement & { hallState?: unknown }).hallState = { camera, gl, scene };
     const look = (e: MouseEvent) => {
       if (document.pointerLockElement !== canvas && e.buttons !== 1) return;
       if (!input.current.active || (e.target !== canvas && !document.pointerLockElement)) return;
