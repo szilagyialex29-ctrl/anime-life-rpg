@@ -1,11 +1,11 @@
 {
+  "version": 1,
   "asset_id": "520c6a71-b20a-41d3-a2b4-ef6c0e2f85df",
-  "content_type": "application/octet-stream",
-  "created_at": "2026-10-10T07:16:55Z",
-  "original_filename": "Sword_And_Shield_Slash.fbx",
-  "project_id": "f1a36306-aa0f-4ee7-8651-8f8fca4c14bb",
-  "r2_key": "a/v1/f1a36306-aa0f-4ee7-8651-8f8fca4c14bb/520c6a71-b20a-41d3-a2b4-ef6c0e2f85df/Sword_And_Shield_Slash.fbx",
-  "size": 941184,
+  "project_id": "722b688e-5a57-4d8c-b978-6030145b274b",
   "url": "/__l5e/assets-v1/520c6a71-b20a-41d3-a2b4-ef6c0e2f85df/Sword_And_Shield_Slash.fbx",
-  "version": 1
+  "r2_key": "a/v1/722b688e-5a57-4d8c-b978-6030145b274b/520c6a71-b20a-41d3-a2b4-ef6c0e2f85df/Sword_And_Shield_Slash.fbx",
+  "original_filename": "Sword_And_Shield_Slash.fbx",
+  "size": 941184,
+  "content_type": "application/octet-stream",
+  "created_at": "2026-10-10T07:16:55Z"
 }
