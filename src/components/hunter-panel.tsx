@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Stat } from "@/lib/game-data";
-import {
+import { recordBattle,
   RANKS, RANK_ORDER, TIERS, RARITIES, DAILY, STORY, SECRETS, REPEAT_REWARD, MAX_PLUS, POINT_LABELS,
   makeMonster, makeItem, combatStats, damage, freePoints, canPromote, rankUnlocked, itemPower, upgradeCost, sellValue,
   type Rpg, type Monster, type Tier, type HunterRank, type Points, type Item,
@@ -46,6 +46,7 @@ export function HunterPanel({ rpg, setRpg, level, life, onXp }: Props) {
         inventory: drop ? [...r.inventory, drop] : r.inventory,
         dungeonsCleared: r.dungeonsCleared + (dungeonDone ? 1 : 0),
         rank: promote && next ? next : r.rank,
+        battles: recordBattle(r.battles, { at: Date.now(), enemy: m.name, rank: fi.rank, tier: m.tier, level: m.level, result: "win", hpLeftPct: Math.round((myHp / st.maxHp) * 100), turns: fi.log.length }),
       };
     });
     if (promote) toast.success(`[RANGEMELÉS] Mostantól ${RANK_ORDER[ri + 1]}-rangú vadász vagy!`);
@@ -87,7 +88,7 @@ export function HunterPanel({ rpg, setRpg, level, life, onXp }: Props) {
     if (myHp <= 0) {
       const lost = Math.round(rpg.gold * 0.1);
       log.push(`[VERESÉG] Elájultál. -${lost} arany. Pihenj és erősödj.`);
-      setRpg(r => ({ ...r, hp: 1, mana: myMana, gold: r.gold - lost }));
+      setRpg(r => ({ ...r, hp: 1, mana: myMana, gold: r.gold - lost, battles: recordBattle(r.battles, { at: Date.now(), enemy: m.name, rank: f.rank, tier: m.tier, level: m.level, result: "lose", hpLeftPct: Math.round((mhp / m.hp) * 100), turns: f.log.length }) }));
       setF({ ...f, mhp, log: log.slice(-7), over: "lose" }); return;
     }
     setRpg(r => ({ ...r, hp: myHp, mana: myMana }));

@@ -26,3 +26,14 @@ describe("Fantasy RPG rules", () => {
     expect(upgradeCost({ ...it0, plus: 1 })).toBeGreaterThan(upgradeCost(it0));
   });
 });
+
+import { recordBattle as _rb, MAX_BATTLES as _MB } from "@/lib/rpg";
+describe("battle history", () => {
+  it("keeps newest first and caps at 10", () => {
+    let list: ReturnType<typeof _rb> = [];
+    for (let i = 0; i < 12; i++) list = _rb(list, { at: i, enemy: "x", rank: "E", tier: "normal", level: 1, result: "win", hpLeftPct: 50, turns: 3 });
+    expect(_MB).toBe(10);
+    expect(list).toHaveLength(10);
+    expect(list[0]?.at).toBe(11);
+  });
+});

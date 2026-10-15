@@ -2,22 +2,22 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { HunterPanel } from "@/components/hunter-panel";
-import { newRpg, type Rpg } from "@/lib/rpg";
+import { newRpg, combatStats, type Rpg } from "@/lib/rpg";
 import { Button } from "@/components/ui/button";
 import { Equipment } from "@/components/equipment";
-import { MentorAdvice } from "@/components/mentor-advice";
+import { BattleAdvisor } from "@/components/battle-advisor";
 import { DungeonGates } from "@/components/dungeon-gate";
-import { CLASSES, MENTORS, QUESTS, PENALTY, DARES, type Stat, type ClassId, type MentorId } from "@/lib/game-data";
+import { CLASSES, MENTORS, type Stat, type ClassId, type MentorId } from "@/lib/game-data";
 import { levelOf, resolveEquipment, resolveAura, type EquipmentId, type AuraId } from "@/lib/progression";
 import { AVATAR_IMAGES, MENTOR_IMAGES } from "@/lib/avatar-assets";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Glow-Up Rendszer — Szintlépős életmód tracker" },
-      { name: "description", content: "Edzés, bőrápolás, tanulás és alvás RPG-stílusban: lépj szintet, fejleszd anime avatárod." },
-      { property: "og:title", content: "Glow-Up Rendszer" },
-      { property: "og:description", content: "Napi küldetések, XP, és válassz mentort: Jinwoo, Cha Hae-In, Yoo Jin-Ho és többek. Lépj szintet a valóságban." },
+      { title: "Árnyékvadász — Fantasy RPG Solo Leveling stílusban" },
+      { name: "description", content: "Vadássz szörnyekre, tisztíts dungeonöket, lépj rangot és kérj MI haditanácsot a mentorodtól." },
+      { property: "og:title", content: "Árnyékvadász RPG" },
+      { property: "og:description", content: "Fantasy RPG: szörnyek, zsákmány, rangvizsgák és MI stat build tanácsadó Solo Leveling mentorokkal." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -60,16 +60,11 @@ function Index() {
     let st: State = { ...initial };
     try { if (raw) st = { ...initial, ...JSON.parse(raw) }; } catch { localStorage.removeItem("glowup"); }
     if (st.cls && !st.mentor) st = { ...st, mentor: "jinwoo" as MentorId };
-    if (st.cls && st.day !== today()) {
-      const failed = st.done.filter((d) => QUESTS.some((q) => q.id === d)).length < QUESTS.length;
-      st = { ...st, day: today(), done: [] };
-      if (failed && !st.penaltyUntil) st = { ...st, penaltyUntil: Date.now() + 864e5, dare: pick(DARES) };
-    }
-    if (st.penaltyUntil && Date.now() > st.penaltyUntil) st = { ...st, penaltyUntil: null, dare: null };
+    st = { ...st, day: today(), penaltyUntil: null, dare: null };
     const rpg = { ...newRpg(today()), ...st.rpg };
     st = { ...st, rpg: rpg.day === today() ? rpg : { ...rpg, day: today(), dailyKills: 0, dailyElite: 0, claimedDaily: [] } };
     setS(st); setLoaded(true);
-    setMsg(st.penaltyUntil ? "[FIGYELMEZTETÉS] Büntetési zóna aktív." : pick(MENTORS[st.mentor ?? "jinwoo"].idle));
+    setMsg(pick(MENTORS[st.mentor ?? "jinwoo"].idle));
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem("glowup", JSON.stringify(s)); }, [s, loaded]);
 
@@ -135,26 +130,11 @@ function Index() {
   const c = CLASSES[s.cls];
   const m = MENTORS[s.mentor ?? "jinwoo"];
   const lv = levelOf(s.xp);
-  const inPenalty = !!s.penaltyUntil;
-  const list = inPenalty ? PENALTY : QUESTS;
   const equipment = resolveEquipment(s.equipment, lv.level);
   const aura = resolveAura(s.aura, lv.level);
   const rpg = s.rpg ?? newRpg(s.day);
+  const cs = combatStats(lv.level, rpg, s.stats);
   const setRpg = (f: (r: Rpg) => Rpg) => setS(p => ({ ...p, rpg: f(p.rpg ?? newRpg(p.day)) }));
-
-  function complete(q: { id: string; stat: Stat; xp: number }) {
-    if (s.done.includes(q.id)) return;
-    const gain = Math.round(q.xp * (q.stat === c.bonus ? 1.2 : 1));
-    const before = levelOf(s.xp).level;
-    const nx = s.xp + gain;
-    const after = levelOf(nx).level;
-    let next: State = { ...s, xp: nx, done: [...s.done, q.id], stats: { ...s.stats, [q.stat]: s.stats[q.stat] + 1 } };
-    if (inPenalty && PENALTY.every((p) => next.done.includes(p.id))) {
-      next = { ...next, penaltyUntil: null, dare: null, done: [] };
-      setMsg("[RENDSZER] Büntetés teljesítve. Visszatérés a normál küldetésekhez.");
-    } else setMsg(after > before ? `[SZINTLÉPÉS: ${after}] ${pick(m.levelup)}` : `+${gain} XP · ${pick(m.done)}`);
-    setS(next);
-  }
 
   return (
     <main className="min-h-screen px-4 py-8 max-w-6xl mx-auto grid lg:grid-cols-[340px_1fr] gap-6">
@@ -172,10 +152,10 @@ function Index() {
           </div>
         </div>
         <div className="system-window p-4">
-          <p className="font-display text-xs text-primary mb-3">[ STATISZTIKÁK ]</p>
-          {(Object.keys(s.stats) as Stat[]).map((k) => (
+          <p className="font-display text-xs text-primary mb-3">[ HARCI STATISZTIKÁK ]</p>
+          {Object.entries({ HP: cs.maxHp, ATK: cs.atk, DEF: cs.def, SPD: cs.spd, "KRIT %": Math.round(cs.crit), MANA: cs.maxMana }).map(([k, v]) => (
             <div key={k} className="flex justify-between py-1 border-b border-border/40 last:border-0">
-              <span className="font-display text-sm">{k}</span><span className="text-accent font-bold">{s.stats[k]}</span>
+              <span className="font-display text-sm">{k}</span><span className="text-accent font-bold">{v}</span>
             </div>
           ))}
         </div>
@@ -204,48 +184,10 @@ function Index() {
           )}
         </div>
 
-        {inPenalty && (
-          <div className="system-window p-5 border-destructive">
-            <p className="font-display text-destructive glow-text">[ BÜNTETÉSI ZÓNA ]</p>
-            <p className="mt-1">Tegnap kihagytad a napi küldetést. A következő 24 órában csak büntető küldetések érhetők el – nehezebbek, kevesebb XP.</p>
-            {s.dare && (
-              <p className="mt-3 text-sm text-muted-foreground">
-                Önkéntes ciki kihívás (TikTok, 24 órára): <span className="text-foreground">{s.dare}</span>
-                <br />Csak vicces, ártalmatlan dolgot posztolj – semmi veszélyes vagy olyat, amit tényleg megbánnál.
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground mt-2">Lejár: {new Date(s.penaltyUntil ?? 0).toLocaleString("hu-HU")}</p>
-          </div>
-        )}
-
-        <div className="system-window p-5">
-          <p className="font-display text-xs text-primary">[ {inPenalty ? "BÜNTETŐ" : "NAPI"} KÜLDETÉS ]</p>
-          <h2 className="font-display text-xl mb-4">{inPenalty ? "Vezeklés" : "Felkészülés az erősödésre"}</h2>
-          <ul className="space-y-2">
-            {list.map((q) => {
-              const d = s.done.includes(q.id);
-              return (
-                <li key={q.id}>
-                  <Button variant="ghost" onClick={() => complete(q)} disabled={d}
-                    className={`w-full h-auto whitespace-normal text-left flex items-center justify-between gap-3 p-3 border transition ${d ? "border-primary bg-primary/10 opacity-60" : "border-border hover:border-primary hover:bg-primary/5"}`}>
-                    <span className="flex items-center gap-3">
-                      <span className={`w-5 h-5 border border-primary grid place-items-center text-xs ${d ? "bg-primary text-primary-foreground" : ""}`}>{d ? "✓" : ""}</span>
-                      <span className={d ? "line-through" : ""}>{q.label}</span>
-                    </span>
-                    <span className="font-display text-xs text-accent">{q.stat} · +{q.xp}XP</span>
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-          {!inPenalty && (
-            <p className="text-xs text-muted-foreground mt-4">Figyelem: ha éjfélig nem teljesíted mindet, a Rendszer büntetési zónába helyez.</p>
-          )}
-        </div>
         <HunterPanel rpg={rpg} setRpg={setRpg} level={lv.level} life={s.stats} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
-        <DungeonGates level={lv.level} stats={s.stats} day={s.day} doneToday={s.done.filter(id => !id.startsWith("p")).length} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
+        <DungeonGates level={lv.level} stats={s.stats} day={s.day} doneToday={rpg.dailyKills} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
         <Button asChild variant="secondary" className="w-full"><Link to="/throne-room">Gótikus trónterem · Igris →</Link></Button>
-        <MentorAdvice key={s.mentor ?? "jinwoo"} player={{ mentor: s.mentor ?? "jinwoo", cls: s.cls, name: s.name.slice(0,100), xp: s.xp, stats: s.stats, done: s.done, inPenalty }} />
+        <BattleAdvisor rpg={rpg} level={lv.level} cls={s.cls} mentor={s.mentor ?? "jinwoo"} life={s.stats} />
       </section>
     </main>
   );

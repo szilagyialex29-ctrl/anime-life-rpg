@@ -95,7 +95,7 @@ export type Rpg = {
   rank: HunterRank; gold: number; hp: number | null; mana: number | null; points: Points;
   inventory: Item[]; equipped: Partial<Record<Slot, string>>; potions: number;
   kills: number; bossKills: number; day: string; dailyKills: number; dailyElite: number; claimedDaily: string[];
-  dungeonsCleared: number; story: number; flags: string[]; secrets: string[]; claimedRepeat: number;
+  dungeonsCleared: number; story: number; flags: string[]; secrets: string[]; claimedRepeat: number; battles?: BattleRecord[];
 };
 export const newRpg = (day: string): Rpg => ({
   rank: "E", gold: 50, hp: null, mana: null, points: { str: 0, vit: 0, def: 0, agi: 0, int: 0 }, inventory: [], equipped: {}, potions: 2,
@@ -158,3 +158,9 @@ export const SECRETS = [
   { id: "s-boss5", label: "Királyölő – győzz le 5 főellenfelet", test: (r: Rpg) => r.bossKills >= 5, xp: 400, gold: 300 },
   { id: "s-plus", label: "Mesterkovács – fejlessz egy tárgyat +10-re", test: (r: Rpg) => r.inventory.some(i => i.plus >= MAX_PLUS), xp: 500, gold: 0 },
 ];
+
+// ---------- Battle history (fed to the AI strategist) ----------
+export type BattleRecord = { at: number; enemy: string; rank: HunterRank; tier: Tier; level: number; result: "win" | "lose"; hpLeftPct: number; turns: number };
+export const MAX_BATTLES = 10;
+/** Newest first, capped at MAX_BATTLES. */
+export const recordBattle = (list: BattleRecord[] | undefined, b: BattleRecord): BattleRecord[] => [b, ...(list ?? [])].slice(0, MAX_BATTLES);
