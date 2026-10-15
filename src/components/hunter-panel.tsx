@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Stat } from "@/lib/game-data";
-import {
+import { recordBattle,
   RANKS, RANK_ORDER, TIERS, RARITIES, DAILY, STORY, SECRETS, REPEAT_REWARD, MAX_PLUS, POINT_LABELS,
   makeMonster, makeItem, combatStats, damage, freePoints, canPromote, rankUnlocked, itemPower, upgradeCost, sellValue,
   type Rpg, type Monster, type Tier, type HunterRank, type Points, type Item,
