@@ -186,7 +186,11 @@ function Index() {
 
         <HunterPanel rpg={rpg} setRpg={setRpg} level={lv.level} life={s.stats} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
         <DungeonGates level={lv.level} stats={s.stats} day={s.day} doneToday={rpg.dailyKills} onXp={x => setS(p => ({ ...p, xp: p.xp + x }))} />
-        <Button asChild variant="secondary" className="w-full"><Link to="/throne-room">Gótikus trónterem · Igris →</Link></Button>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Button asChild variant="secondary"><Link to="/throne-room">Gótikus trónterem · Igris →</Link></Button>
+          <Button asChild variant="secondary"><Link to="/ice-cave">Fagyos Jégbarlang · A →</Link></Button>
+          <Button asChild variant="secondary"><Link to="/demon-castle">Démonvár · B/S →</Link></Button>
+        </div>
         <BattleAdvisor rpg={rpg} level={lv.level} cls={s.cls} mentor={s.mentor ?? "jinwoo"} life={s.stats} />
       </section>
     </main>
