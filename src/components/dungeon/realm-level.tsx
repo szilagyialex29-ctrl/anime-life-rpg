@@ -121,14 +121,14 @@ function Sim({ realm, st, report }: { realm: Realm; st: RefObject<State>; report
       else if (s.foes.every(e => e.hp <= 0)) { s.over = "win"; document.exitPointerLock?.(); }
     }
     camera.position.set(s.x, 1.7, s.z); camera.rotation.order = "YXZ"; camera.rotation.set(s.pitch, s.yaw, 0);
-    if (blade.current) { blade.current.position.copy(camera.position); blade.current.quaternion.copy(camera.quaternion); blade.current.translateX(0.45); blade.current.translateY(-0.4); blade.current.translateZ(-0.8); blade.current.rotateZ(0.5 - s.swing * 1.6); blade.current.rotateX(-s.swing * 0.6); }
+    if (blade.current) { blade.current.position.copy(camera.position); blade.current.quaternion.copy(camera.quaternion); blade.current.translateX(0.5); blade.current.translateY(-0.45); blade.current.translateZ(-1.1); blade.current.rotateZ(0.5 - s.swing * 1.6); blade.current.rotateX(-s.swing * 0.6); }
     t.current += dt;
     if (t.current > 0.12) {
       t.current = 0; const alive = s.foes.filter(e => e.hp > 0); const boss = s.foes.find(e => e.boss && e.hp > 0 && Math.hypot(e.x - s.x, e.z - s.z) < 16);
       report({ hp: Math.ceil(s.hp), foes: alive.length, boss: boss ? { name: boss.name, hp: Math.max(0, boss.hp), max: boss.max } : null, log: s.log, over: s.over, burning: s.burn > 0 });
     }
   });
-  return <mesh ref={blade}><boxGeometry args={[0.05, 0.9, 0.12]} /><meshStandardMaterial color="#b8c4d6" metalness={0.9} roughness={0.2} emissive={realm.colors.accent} emissiveIntensity={0.25} /></mesh>;
+  return <mesh ref={blade}><boxGeometry args={[0.03, 0.6, 0.07]} /><meshStandardMaterial color="#b8c4d6" metalness={0.9} roughness={0.2} emissive={realm.colors.accent} emissiveIntensity={0.25} /></mesh>;
 }
 
 export default function RealmLevel({ id }: { id: RealmId }) {
@@ -150,10 +150,10 @@ export default function RealmLevel({ id }: { id: RealmId }) {
   const restart = () => { st.current = fresh(realm); setPaused(false); setRun(r => r + 1); };
   const exit = () => { if (document.pointerLockElement) document.exitPointerLock(); };
   return <main className="fixed inset-0 bg-background text-foreground overflow-hidden">
-    <Canvas key={run} shadows dpr={[1, 1.5]} camera={{ fov: 70, near: 0.05, far: 80 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: realm.id === "ice-cave" ? 0.75 : 0.9 }}>
+    <Canvas key={run} shadows dpr={[1, 1.5]} camera={{ fov: 70, near: 0.05, far: 80 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: realm.id === "ice-cave" ? 0.75 : 1.5 }}>
       <color attach="background" args={[c.bg]} />
       <fog attach="fog" args={[c.bg, 14, 55]} />
-      <ambientLight intensity={realm.id === "ice-cave" ? 0.55 : 0.3} color={c.fill} />
+      <ambientLight intensity={realm.id === "ice-cave" ? 0.55 : 0.7} color={c.fill} />
       <hemisphereLight args={[c.fill, c.bg, 0.4]} />
       <Environment resolution={64} environmentIntensity={0.25}><Lightformer intensity={0.8} color={c.fill} position={[0, 8, 0]} rotation-x={Math.PI / 2} scale={[16, 60, 1]} /><Lightformer intensity={0.6} color={c.light} position={[0, 3, -30]} scale={[10, 5, 1]} /></Environment>
       <Architecture realm={realm} />

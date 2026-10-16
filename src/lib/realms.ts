@@ -59,7 +59,7 @@ export const REALMS: Record<RealmId, Realm> = {
       { name: "Démon kardforgató", x: 3, z: -31, hp: 100, atk: 13, speed: 2.8 },
       { name: "Baran, a démonkirály", x: 0, z: -43, hp: 380, atk: 22, speed: 3, boss: true },
     ],
-    colors: { bg: "#0d0606", floor: "#2a2526", floorLine: "#141011", wall: "#1c1517", pillar: "#262022", accent: "#ff5a1f", light: "#ff6a2a", fill: "#ffb07a", enemy: "#3a1414", enemyGlow: "#ff3b1f" },
+    colors: { bg: "#0d0606", floor: "#4a3f40", floorLine: "#141011", wall: "#3a2a2c", pillar: "#4a3a3c", accent: "#ff5a1f", light: "#ff6a2a", fill: "#ffb07a", enemy: "#3a1414", enemyGlow: "#ff3b1f" },
   },
 };
 
