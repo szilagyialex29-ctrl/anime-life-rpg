@@ -10,11 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemonCastleRouteImport } from './routes/demon-castle'
+import { Route as IceCaveRouteImport } from './routes/ice-cave'
 import { Route as ThroneRoomRouteImport } from './routes/throne-room'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemonCastleRoute = DemonCastleRouteImport.update({
+  id: '/demon-castle',
+  path: '/demon-castle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IceCaveRoute = IceCaveRouteImport.update({
+  id: '/ice-cave',
+  path: '/ice-cave',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ThroneRoomRoute = ThroneRoomRouteImport.update({
@@ -25,27 +37,35 @@ const ThroneRoomRoute = ThroneRoomRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/demon-castle': typeof DemonCastleRoute
+  '/ice-cave': typeof IceCaveRoute
   '/throne-room': typeof ThroneRoomRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/demon-castle': typeof DemonCastleRoute
+  '/ice-cave': typeof IceCaveRoute
   '/throne-room': typeof ThroneRoomRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/demon-castle': typeof DemonCastleRoute
+  '/ice-cave': typeof IceCaveRoute
   '/throne-room': typeof ThroneRoomRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/throne-room'
+  fullPaths: '/' | '/demon-castle' | '/ice-cave' | '/throne-room'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/throne-room'
-  id: '__root__' | '/' | '/throne-room'
+  to: '/' | '/demon-castle' | '/ice-cave' | '/throne-room'
+  id: '__root__' | '/' | '/demon-castle' | '/ice-cave' | '/throne-room'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DemonCastleRoute: typeof DemonCastleRoute
+  IceCaveRoute: typeof IceCaveRoute
   ThroneRoomRoute: typeof ThroneRoomRoute
 }
 
@@ -56,6 +76,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demon-castle': {
+      id: '/demon-castle'
+      path: '/demon-castle'
+      fullPath: '/demon-castle'
+      preLoaderRoute: typeof DemonCastleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ice-cave': {
+      id: '/ice-cave'
+      path: '/ice-cave'
+      fullPath: '/ice-cave'
+      preLoaderRoute: typeof IceCaveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/throne-room': {
@@ -70,6 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DemonCastleRoute: DemonCastleRoute,
+  IceCaveRoute: IceCaveRoute,
   ThroneRoomRoute: ThroneRoomRoute,
 }
 export const routeTree = rootRouteImport
