@@ -53,7 +53,7 @@ function Architecture({ realm }: { realm: Realm }) {
           <mesh position-y={2.2}><torusGeometry args={[o.r * 1.05, 0.06, 6, 6]} /><meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={2} /></mesh>
         </group>)}
     {ice && icicles.map((p, i) => <mesh key={i} position={[p.x, 9 - p.h / 2, p.z]} rotation-x={Math.PI}><coneGeometry args={[0.18, p.h, 5]} /><meshStandardMaterial color={c.accent} emissive={c.pillar} emissiveIntensity={0.25} transparent opacity={0.85} /></mesh>)}
-    {realm.hazards.map((h, i) => <mesh key={i} rotation-x={-Math.PI / 2} position={[h.x, 0.02, h.z]}><planeGeometry args={[h.w, h.d]} /><meshStandardMaterial ref={i === 0 ? lava : undefined} color="#ff4a10" emissive={c.accent} emissiveIntensity={1.8} /></mesh>)}
+    {realm.hazards.map((h, i) => <mesh key={i} rotation-x={-Math.PI / 2} position={[h.x, 0.02, h.z]}><planeGeometry args={[h.w, h.d]} /><meshStandardMaterial ref={i === 0 ? lava : null} color="#ff4a10" emissive={c.accent} emissiveIntensity={1.8} /></mesh>)}
     {realm.hazards.map((h, i) => <pointLight key={`l${i}`} position={[h.x, 0.8, h.z]} color={c.light} intensity={6} distance={9} />)}
     {!ice && <group ref={runes}>{Array.from({ length: 10 }, (_, i) => <mesh key={i} position={[(i % 2 ? 1 : -1) * 3, 3, 4 - i * 5]}><torusGeometry args={[0.35, 0.05, 6, 6]} /><meshStandardMaterial color={c.accent} emissive={c.accent} emissiveIntensity={3} /></mesh>)}</group>}
     {Array.from({ length: 5 }, (_, i) => <pointLight key={`f${i}`} position={[(i % 2 ? 1 : -1) * 4, 5, realm.maxZ - 4 - i * 11]} color={c.light} intensity={ice ? 10 : 8} distance={16} />)}
